@@ -6,51 +6,51 @@ import java.io.Serializable;
 
 public class Context implements Serializable {
 
-    @JSONField(name = "min_sdk_level")
-    private int minSdkLevel;
+    @JSONField(name = "min_api_level")
+    private int minApiLevel = 1;
 
-    @JSONField(name = "max_sdk_level")
-    private int maxSdkLevel;
+    @JSONField(name = "max_api_level")
+    private int maxApiLevel = Integer.MAX_VALUE;
 
-    @JSONField(name = "min_android_level")
-    private int minAndroidVersion;
+    @JSONField(name = "min_system_version")
+    private double minSystemVersion = 1;
 
-    @JSONField(name = "max_android_level")
-    private int maxAndroidVersion;
+    @JSONField(name = "max_system_version")
+    private double maxSystemVersion = Double.MAX_VALUE;
 
     @JSONField(name = "devices")
-    private String[] devices;
+    private String[] devices = {};
 
-    public int getMinSdkLevel() {
-        return minSdkLevel;
+    public int getMinApiLevel() {
+        return minApiLevel;
     }
 
-    public void setMinSdkLevel(int minSdkLvel) {
-        this.minSdkLevel = minSdkLvel;
+    public void setMinApiLevel(int minSdkLvel) {
+        this.minApiLevel = minSdkLvel;
     }
 
-    public int getMaxSdkLevel() {
-        return maxSdkLevel;
+    public int getMaxApiLevel() {
+        return maxApiLevel;
     }
 
-    public void setMaxSdkLevel(int maxSdkLevel) {
-        this.maxSdkLevel = maxSdkLevel;
+    public void setMaxApiLevel(int maxApiLevel) {
+        this.maxApiLevel = maxApiLevel;
     }
 
-    public int getMinAndroidVersion() {
-        return minAndroidVersion;
+    public double getMinSystemVersion() {
+        return minSystemVersion;
     }
 
-    public void setMinAndroidVersion(int minAndroidVersion) {
-        this.minAndroidVersion = minAndroidVersion;
+    public void setMinSystemVersion(double minSystemVersion) {
+        this.minSystemVersion = minSystemVersion;
     }
 
-    public int getMaxAndroidVersion() {
-        return maxAndroidVersion;
+    public double getMaxSystemVersion() {
+        return maxSystemVersion;
     }
 
-    public void setMaxAndroidVersion(int maxAndroidVersion) {
-        this.maxAndroidVersion = maxAndroidVersion;
+    public void setMaxSystemVersion(double maxSystemVersion) {
+        this.maxSystemVersion = maxSystemVersion;
     }
 
     public String[] getDevices() {

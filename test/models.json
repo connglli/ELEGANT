@@ -1,0 +1,57 @@
+[
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.media",
+      "iface": "AudioMedia",
+      "method": "setRouting",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 1,
+      "max_api_level": 3
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.content",
+      "iface": "Intent",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "EXTRA_REMOTE_INTENT_TOKEN"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider.SyncStateContract",
+      "iface": "Constants"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  }
+]
