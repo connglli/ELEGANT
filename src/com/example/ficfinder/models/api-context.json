@@ -1,0 +1,23 @@
+{
+  "api": {
+    "type": "field",
+    "pkg": "com.android.base",
+    "interf": "Base",
+    "method": "testBase",
+    "paramList": [
+      {
+        "pkg": "com.android.params",
+        "interf": "Param"
+      }
+    ]
+  },
+  "context": {
+    "min_sdk_level": 1,
+    "max_sdk_level": 1,
+    "min_android_version": 1,
+    "max_android_version": 1,
+    "devices": [
+      "HTC"
+    ]
+  }
+}
