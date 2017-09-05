@@ -60,7 +60,7 @@ public class ApiMethod extends Api {
         StringBuilder params = new StringBuilder();
 
         if (this.paramList != null && !this.paramList.isEmpty()) {
-            int l = this.paramList.size() - 1;
+            int l = this.paramList.size();
 
             for (int i = 0; i < l - 1; i ++) {
                 params.append(this.paramList.get(i) + ",");

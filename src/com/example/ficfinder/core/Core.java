@@ -3,10 +3,16 @@ package com.example.ficfinder.core;
 
 import com.example.ficfinder.Configs;
 import com.example.ficfinder.Env;
+import com.example.ficfinder.models.ApiContext;
+import com.example.ficfinder.models.api.ApiField;
+import com.example.ficfinder.models.api.ApiIface;
+import com.example.ficfinder.models.api.ApiMethod;
 import soot.*;
+import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.options.Options;
 
 import java.util.Collections;
+import java.util.List;
 
 public class Core {
 
@@ -59,25 +65,36 @@ public class Core {
     private void core() {
         System.out.println("Core Algothrims goes here");
 
-//        CallGraph callGraph = Scene.v().getCallGraph();
-//        List<ApiContext> models = Env.v().getModels();
-//
-//        for (ApiContext model : models) {
-//            String type = model.getApi().getClass().toString().split(" ")[1];
-//
-//            switch (type) {
-//                case ApiField.TAG:
-//                    ApiField apiField = (ApiField) model.getApi();
-//                    SootField sootField = Scene.v().getField(apiField.getSiganiture());
-//                    break;
-//                case ApiMethod.TAG:
-//                    ApiMethod apiMethod = (ApiMethod) model.getApi();
-//                    SootMethod sootMethod = Scene.v().getMethod(apiMethod.getSiganiture());
-//                    break;
-//                case ApiIface.TAG:
-//                    ApiIface apiIface = (ApiIface) model.getApi(); break;
+        CallGraph callGraph = Scene.v().getCallGraph();
+        List<ApiContext> models = Env.v().getModels();
+
+//        Chain<SootClass> classes = Scene.v().getClasses();
+//        for (SootClass c : classes) {
+//            System.out.println(c.getShortName());
+//            if (c.getShortName().equalsIgnoreCase("AudioMedia")) {
+//                List<SootMethod> methods =  c.getMethods();
+//                for (SootMethod method : methods) {
+//                    System.out.println(method.getSignature());
+//                }
 //            }
 //        }
+
+        for (ApiContext model : models) {
+            String type = model.getApi().getClass().toString().split(" ")[1];
+
+            switch (type) {
+                case ApiField.TAG:
+                    ApiField apiField = (ApiField) model.getApi();
+                    SootField sootField = Scene.v().getField(apiField.getSiganiture());
+                    break;
+                case ApiMethod.TAG:
+                    ApiMethod apiMethod = (ApiMethod) model.getApi();
+                    SootMethod sootMethod = Scene.v().getMethod(apiMethod.getSiganiture());
+                    break;
+                case ApiIface.TAG:
+                    ApiIface apiIface = (ApiIface) model.getApi(); break;
+            }
+        }
     }
 
     private void tearDown() {

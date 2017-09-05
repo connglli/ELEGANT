@@ -3,7 +3,7 @@
     "api": {
       "@type": "method",
       "pkg": "android.media",
-      "iface": "AudioMedia",
+      "iface": "AudioManager",
       "method": "setRouting",
       "ret": {
         "pkg": "",

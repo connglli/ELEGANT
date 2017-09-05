@@ -16,7 +16,7 @@ public class Env {
 
     public static final String ANDROID_PLATFORMS_PATH = "assets/android-platforms";
 
-    public static final String SOURCES_AND_SINKS_TEXT_PATH = "assets/SoucesAndSinks.txt";
+    public static final String SOURCES_AND_SINKS_TEXT_PATH = "assets/SourcesAndSinks.txt";
 
     private SetupApplication app;
 
