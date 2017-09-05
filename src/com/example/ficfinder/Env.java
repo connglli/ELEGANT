@@ -3,6 +3,8 @@ package com.example.ficfinder;
 
 import com.example.ficfinder.models.ApiContext;
 import soot.jimple.infoflow.android.SetupApplication;
+import soot.jimple.infoflow.android.manifest.ProcessManifest;
+import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 
 import java.util.List;
 
@@ -20,7 +22,11 @@ public class Env {
 
     private SetupApplication app;
 
+    private ProcessManifest manifest;
+
     private List<ApiContext> models;
+
+    private ProgramDependenceGraph pdg;
 
     public static Env v() {
         if (instance == null) {
@@ -34,16 +40,32 @@ public class Env {
         return app;
     }
 
+    public ProcessManifest getManifest() {
+        return manifest;
+    }
+
     public List<ApiContext> getModels() {
         return models;
     }
 
-    void setApp(SetupApplication app) {
+    public ProgramDependenceGraph getPdg() {
+        return pdg;
+    }
+
+    public void setApp(SetupApplication app) {
         this.app = app;
     }
 
-    void setModels(List<ApiContext> models) {
+    public void setManifest(ProcessManifest manifest) {
+        this.manifest = manifest;
+    }
+
+    public void setModels(List<ApiContext> models) {
         this.models = models;
+    }
+
+    public void setPdg(ProgramDependenceGraph pdg) {
+        this.pdg = pdg;
     }
 
     private Env() {}

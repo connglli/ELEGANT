@@ -4,14 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.example.ficfinder.models.ApiContext;
 import com.sun.istack.internal.NotNull;
 import soot.G;
-import soot.PackManager;
-import soot.Scene;
-import soot.SootMethod;
 import soot.jimple.infoflow.android.SetupApplication;
-import soot.options.Options;
+import soot.jimple.infoflow.android.manifest.ProcessManifest;
 
 import java.io.*;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,25 +99,30 @@ public class Configs {
     }
 
     private void parseApk(@NotNull String apkPath) {
-        File apk;
+        try {
+            if (!apkPath.endsWith(".apk")) {
+                throw new RuntimeException("File " + apkPath + " may not be an legal apk file");
+            }
 
-        if (!apkPath.endsWith(".apk")) {
-            throw new RuntimeException("File " + apkPath + " may not be an legal apk file");
-        } else if ((apk = new File(apkPath)) == null || !apk.exists()) {
+            ProcessManifest manifest = new ProcessManifest(apkPath);
+
+            // set environment
+            Env.v().setManifest(manifest);
+
+            // setup application
+            SetupApplication app = new SetupApplication(Env.ANDROID_PLATFORMS_PATH, apkPath);
+            try {
+                app.calculateSourcesSinksEntrypoints(Env.SOURCES_AND_SINKS_TEXT_PATH);
+            } catch (Exception e) {
+                throw new RuntimeException("Sources and sinks file " + Env.SOURCES_AND_SINKS_TEXT_PATH + " is not available");
+            }
+            G.reset();
+
+            // set environment
+            Env.v().setApp(app);
+        } catch (Exception e) {
             throw new RuntimeException("File " + apkPath + " does not exist");
         }
-
-        // setup application
-        SetupApplication app = new SetupApplication(Env.ANDROID_PLATFORMS_PATH, apkPath);
-        try {
-            app.calculateSourcesSinksEntrypoints(Env.SOURCES_AND_SINKS_TEXT_PATH);
-        } catch (Exception e) {
-            throw new RuntimeException("Sources and sinks file " + Env.SOURCES_AND_SINKS_TEXT_PATH + " is not available");
-        }
-        G.reset();
-
-        // set environment
-        Env.v().setApp(app);
     }
 
     private Configs() {

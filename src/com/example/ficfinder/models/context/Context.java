@@ -18,8 +18,8 @@ public class Context implements Serializable {
     @JSONField(name = "max_system_version")
     private double maxSystemVersion = Double.MAX_VALUE;
 
-    @JSONField(name = "devices")
-    private String[] devices = {};
+    @JSONField(name = "bad_devices")
+    private String[] badDevices = {};
 
     public int getMinApiLevel() {
         return minApiLevel;
@@ -53,12 +53,12 @@ public class Context implements Serializable {
         this.maxSystemVersion = maxSystemVersion;
     }
 
-    public String[] getDevices() {
-        return devices;
+    public String[] getBadDevices() {
+        return badDevices;
     }
 
-    public void setDevices(String[] devices) {
-        this.devices = devices;
+    public void setBadDevices(String[] badDevices) {
+        this.badDevices = badDevices;
     }
 
 }
