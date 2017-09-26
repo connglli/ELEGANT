@@ -3,7 +3,6 @@ package com.example.ficfinder.models;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.example.ficfinder.models.api.Api;
 import com.example.ficfinder.models.context.Context;
-import soot.Unit;
 
 import java.util.Arrays;
 
@@ -69,4 +68,5 @@ public class ApiContext {
         // we don't have to override hashCode because our equals method uses every field of a context obj
         return super.hashCode();
     }
+
 }

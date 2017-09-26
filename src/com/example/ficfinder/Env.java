@@ -2,12 +2,14 @@ package com.example.ficfinder;
 
 
 import com.example.ficfinder.models.ApiContext;
+import com.example.ficfinder.tracker.PubSub;
+import com.example.ficfinder.tracker.PubSub.Issue;
+import com.example.ficfinder.tracker.Tracker;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,6 +24,8 @@ public class Env {
     public static final String ANDROID_PLATFORMS_PATH = "assets/android-platforms";
 
     public static final String SOURCES_AND_SINKS_TEXT_PATH = "assets/SourcesAndSinks.txt";
+
+    private PubSub tracker = Tracker.v();
 
     private SetupApplication app;
 
@@ -69,6 +73,15 @@ public class Env {
 
     public void setPdgMapping(Map<String, ProgramDependenceGraph> pdgMapping) {
         this.pdgMapping = pdgMapping;
+    }
+
+    /**
+     * Emit an issue to IFCTracker
+     *
+     * @param issue
+     */
+    public void emit(Issue issue) {
+        tracker.publish(issue);
     }
 
     private Env() {

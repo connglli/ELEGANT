@@ -1,4 +1,4 @@
-package com.example.ficfinder.core;
+package com.example.ficfinder.finder;
 
 
 import com.example.ficfinder.Configs;
@@ -7,6 +7,7 @@ import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiField;
 import com.example.ficfinder.models.api.ApiIface;
 import com.example.ficfinder.models.api.ApiMethod;
+import com.example.ficfinder.tracker.Issue;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
 import soot.jimple.Stmt;
@@ -23,15 +24,15 @@ import soot.toolkits.graph.pdg.Region;
 
 import java.util.*;
 
-public class Core {
+public class Finder {
 
     // Singleton
 
-    private static Core instance;
+    private static Finder instance;
 
-    public static Core v() {
+    public static Finder v() {
         if (instance == null) {
-            instance = new Core();
+            instance = new Finder();
         }
 
         return instance;
@@ -100,7 +101,7 @@ public class Core {
 
             // traverse callsites
             for (Callsite callsite : callsites) {
-                if (!maybeFicable(model, callsite)) continue;
+                if (!maybeFICable(model, callsite)) continue;
                 Set<Unit> slice = runBackwardSlicingFor(callsite);
                 boolean isIssueHandled = false;
 
@@ -112,7 +113,7 @@ public class Core {
                 }
 
                 if (!isIssueHandled) {
-                    System.out.println("EMIT A ISSUE HERE");
+                    Env.v().emit(Issue.create(callsite, model));
                 }
             }
         }
@@ -181,7 +182,7 @@ public class Core {
      * Check whether the callsite is ficable i.e. may generate FIC issues
      *
      */
-    private boolean maybeFicable(ApiContext model, Callsite callsite) {
+    private boolean maybeFICable(ApiContext model, Callsite callsite) {
         ProcessManifest manifest = Env.v().getManifest();
 
         // compiled sdk version, used to check whether an api
