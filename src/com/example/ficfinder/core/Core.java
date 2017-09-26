@@ -7,16 +7,19 @@ import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiField;
 import com.example.ficfinder.models.api.ApiIface;
 import com.example.ficfinder.models.api.ApiMethod;
+import com.example.ficfinder.utils.Strings;
 import soot.*;
+import soot.jimple.Stmt;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
+import soot.toolkits.graph.Block;
 import soot.toolkits.graph.BriefUnitGraph;
-import soot.toolkits.graph.pdg.EnhancedUnitGraph;
 import soot.toolkits.graph.pdg.HashMutablePDG;
 import soot.toolkits.graph.pdg.PDGNode;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
+import soot.toolkits.graph.pdg.Region;
 
 import java.util.*;
 
@@ -25,7 +28,7 @@ public class Core {
     // Singleton
 
     private static Core instance;
-    
+
     public static Core v() {
         if (instance == null) {
             instance = new Core();
@@ -54,7 +57,7 @@ public class Core {
         options.set_android_jars(Env.ANDROID_PLATFORMS_PATH);
         options.set_whole_program(true);
         options.set_allow_phantom_refs(true);
-        options.set_output_format(Options.output_format_none);
+        options.set_output_format(Options.output_format_jimple);
         options.setPhaseOption("cg.spark", "on");
 
         Scene.v().loadNecessaryClasses();
@@ -68,7 +71,14 @@ public class Core {
         packManager.getPack("jtp").add(new Transform("jtp.pdg_transform", new BodyTransformer() {
             @Override
             protected void internalTransform(Body body, String s, Map<String, String> map) {
-                Env.v().setPdg(new HashMutablePDG(new EnhancedUnitGraph(body)));
+                String methodSignature = body.getMethod().getSignature();
+                try {
+                    Env.v().getPdgMapping().put(
+                            methodSignature,
+                            new HashMutablePDG(new BriefUnitGraph(body)));
+                } catch (Exception e) {
+                    System.out.println("@WARNING: Error in generating PDG for " + methodSignature);
+                }
             }
         }));
 
@@ -83,19 +93,19 @@ public class Core {
     private void core() {
         System.out.println("Core Algorithm goes here");
 
-        List<ApiContext> models = Env.v().getModels();
+        Set<ApiContext> models = Env.v().getModels();
 
         for (ApiContext model : models) {
-            List<Unit> callsites = this.computeCallsites(model);
+            Set<Callsite> callsites = this.computeCallsites(model);
 
             // traverse callsites
-            for (Unit callsite : callsites) {
+            for (Callsite callsite : callsites) {
                 if (!maybeFicable(model, callsite)) continue;
-                List<Unit> slice = runBackwardSlicingFor(callsite);
+                Set<Unit> slice = runBackwardSlicingFor(callsite);
                 boolean isIssueHandled = false;
 
                 for (Unit stmt : slice) {
-                    if (false/* TODO do checking here */) {
+                    if (canHandleIssue(model, stmt)) {
                         isIssueHandled = true;
                         break;
                     }
@@ -116,20 +126,22 @@ public class Core {
      * Compute all callsites of a specific api
      *
      */
-    private List<Unit> computeCallsites(ApiContext model) {
+    private Set<Callsite> computeCallsites(ApiContext model) {
         CallGraph callGraph = Scene.v().getCallGraph();
         Scene scene = Scene.v();
 
         String type = model.getApi().getClass().toString().split(" ")[1];
-        List<Unit> callsites = new ArrayList<>(128);
+        Set<Callsite> callsites = new HashSet<>(128);
 
         // get callsites of the specific api
         switch (type) {
             case ApiField.TAG: {
-                ApiField apiField = (ApiField) model.getApi();
-                SootField sootField = scene.getField(apiField.getSiganiture());
-
                 // TODO I have no idea how to get the callsite of a specific field
+
+                System.out.println("@WARNING: Model of @field is not supported by now");
+
+                // ApiField apiField = (ApiField) model.getApi();
+                // SootField sootField = scene.getField(apiField.getSiganiture());
 
                 break;
             }
@@ -138,22 +150,23 @@ public class Core {
                 ApiMethod apiMethod = (ApiMethod) model.getApi();
                 SootMethod sootMethod = scene.getMethod(apiMethod.getSiganiture());
 
-                // callsites = callGraph.edgesInto(sootMethod);
                 Iterator<Edge> edges = callGraph.edgesInto(sootMethod);
 
                 while (edges.hasNext()) {
                     Edge edge = edges.next();
-                    callsites.add(edge.srcUnit());
+                    callsites.add(new Callsite(edge.src(), edge.srcUnit()));
                 }
 
                 break;
             }
 
             case ApiIface.TAG: {
-                ApiIface apiIface = (ApiIface) model.getApi();
-                SootClass sootIface = scene.getSootClass(apiIface.getSiganiture());
-
                 // TODO I have no idea how to get the callsite of a specific interface
+
+                System.out.println("@WARNING: Model of @iface is not supported by now");
+
+                // ApiIface apiIface = (ApiIface) model.getApi();
+                // SootClass sootIface = scene.getSootClass(apiIface.getSiganiture());
 
                 break;
             }
@@ -165,10 +178,10 @@ public class Core {
     }
 
     /**
-     * Check whether the callsite is ficable i.e. maybe generate FIC issues
+     * Check whether the callsite is ficable i.e. may generate FIC issues
      *
      */
-    private boolean maybeFicable(ApiContext model, Unit callsite) {
+    private boolean maybeFicable(ApiContext model, Callsite callsite) {
         ProcessManifest manifest = Env.v().getManifest();
 
         // compiled sdk version, used to check whether an api
@@ -180,24 +193,120 @@ public class Core {
     }
 
     /**
-     * Backward slicing algorithm
+     * Check whether the stmt can handle the specific issue
      *
      */
-    private List<Unit> runBackwardSlicingFor(Unit callsite) {
+    public boolean canHandleIssue(ApiContext model, Unit unit) {
+        // we only parse Jimple
+        if (!(unit instanceof Stmt) || !((Stmt) unit).containsFieldRef()) {
+            return false;
+        }
 
-        // TODO run backward slicing here
+        //
+        // TODO CHECK
+        //  I don;t know exactly what FieldRef of a Stmt is!!!
+        //  what if a Stmt contains more than one SootField?
+        //
+        Stmt stmt = (Stmt) unit;
+        SootField field = stmt.getFieldRef().getField();
+        String siganiture = field.getSignature();
 
-        List<Unit> slice = new ArrayList<>(128);
-        ProgramDependenceGraph pdg = Env.v().getPdg();
+        if (model.needCheckApiLevel() || model.needCheckSystemVersion()) {
+            return Strings.contains(siganiture,
+                    "android.os.Build.VERSION_CODES",
+                    "android.os.Build.VERSION.SDK_INT",
+                    "android.os.Build.VERSION.SDK");
+        }
 
-        Iterator<PDGNode> iterator = pdg.iterator();
+        if (model.hasBadDevices()) {
+            return Strings.contains(siganiture,
+                    "android.os.Build.BOARD",
+                    "android.os.Build.BRAND",
+                    "android.os.Build.DEVICE",
+                    "android.os.Build.PRODUCT");
+        }
 
-        while (iterator.hasNext()) {
-            PDGNode node = iterator.next();
-            System.out.println(node.getNode().getClass());
+
+        return false;
+    }
+
+    /**
+     * Backward slicing algorithm.
+     *
+     * we find the backward slicing of a unit by:
+     *  1. get the corresponding pdg, which describes the unit's method
+     *  2. find the corresponding PDGNode srcNode, which contains the unit
+     *  3. find all the dependent PDGNodes of srcNode
+     *  4. get all the units of each dependent PDGNode
+     *
+     */
+    private Set<Unit> runBackwardSlicingFor(Callsite callsite) {
+        Set<Unit> slice = new HashSet<>(128);
+        Map<String, ProgramDependenceGraph> pdgMapping = Env.v().getPdgMapping();
+
+        Unit callsiteUnit = callsite.getUnit();
+        PDGNode srcNode = null;
+        ProgramDependenceGraph pdg = null;
+
+        // 1. get the corresponding pdg, which describes the unit's method
+        pdg = pdgMapping.get(callsite.getMethod().getSignature());
+
+        // 2. find the corresponding PDGNode srcNode, which contains the unit
+        for (PDGNode n : pdg) {
+            Iterator<Unit> iterator = unitIteratorOfPDGNode(n);
+
+            if (iterator != null) {
+                while (iterator.hasNext()) {
+                    if (iterator.next().equals(callsiteUnit)) {
+                        srcNode = n;
+                        break;
+                    }
+                }
+            }
+
+            if (iterator != null && srcNode != null) {
+                break;
+            }
+        }
+
+        // 3. find all the dependent PDGNodes of srcNode
+        List<PDGNode> dependents = srcNode.getBackDependets();
+
+        // 4. get all the units of each dependent PDGNode
+        for (PDGNode dependent : dependents) {
+            Iterator<Unit> iter = unitIteratorOfPDGNode(dependent);
+            while (iter.hasNext()) {
+                slice.add(iter.next());
+            }
         }
 
         return slice;
+    }
+
+    /**
+     * In javaDoc of Soot, the following information are mentioned:
+     *
+     *   This class(PDGNode) defines a Node in the Program Dependence
+     *   Graph. There might be a need to store additional information
+     *   in the PDG nodes. In essence, the PDG nodes represent (within
+     *   them) either CFG nodes or Region nodes.
+     *
+     * So we simply considered that as only CFGNODE and REGION are allowed
+     */
+    private Iterator<Unit> unitIteratorOfPDGNode(PDGNode n) {
+        Iterator<Unit> iterator = null;
+        PDGNode.Type type = n.getType();
+
+        // get iterator
+        if (type.equals(PDGNode.Type.CFGNODE)) {
+            iterator = ((Block) n.getNode()).iterator();
+        } else if (type.equals(PDGNode.Type.REGION)) {
+            iterator = ((Region) n.getNode()).getUnitGraph().iterator();
+        } else {
+            System.out.println("Only REGION and CFGNODE are allowed");
+        }
+
+        return iterator;
     }
 
 }

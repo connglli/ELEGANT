@@ -9,6 +9,7 @@ import soot.jimple.infoflow.android.manifest.ProcessManifest;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +47,7 @@ public class Configs {
 
     public void parse(@NotNull List<String> configs) {
         for (String config : configs) {
-            // we will pass unformatted configs
+            // we will omit unformatted configs
             if (!config.startsWith("--")) {
                 continue;
             }
@@ -54,7 +55,7 @@ public class Configs {
             // every legal config is formatted as --<key>=<value>
             String[] tokens = config.split("--|=");
 
-            // we will pass unformatted configs
+            // we will omit unformatted configs
             if (tokens.length != 3) {
                 continue ;
             }
@@ -88,11 +89,7 @@ public class Configs {
 
             List<ApiContext> models = JSON.parseArray(buffer.toString(), ApiContext.class);
 
-            for (ApiContext model : models) {
-                System.out.println(model.getApi().getSiganiture());
-            }
-
-            Env.v().setModels(models);
+            Env.v().setModels(new HashSet<>(models));
         } catch (IOException e) {
             throw new RuntimeException("Unexpected error generated while reading " + filePath);
         }

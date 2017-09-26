@@ -2,27 +2,14 @@
   {
     "api": {
       "@type": "method",
-      "pkg": "android.media",
-      "iface": "AudioManager",
-      "method": "setRouting",
+      "pkg": "android.os",
+      "iface": "HandlerThread",
+      "method": "quit",
       "ret": {
         "pkg": "",
-        "iface": "void"
+        "iface": "boolean"
       },
-      "paramList": [
-        {
-          "pkg": "",
-          "iface": "int"
-        },
-        {
-          "pkg": "",
-          "iface": "int"
-        },
-        {
-          "pkg": "",
-          "iface": "int"
-        }
-      ]
+      "paramList": []
     },
     "context": {
       "min_api_level": 1,

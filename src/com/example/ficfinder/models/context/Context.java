@@ -6,17 +6,25 @@ import java.io.Serializable;
 
 public class Context implements Serializable {
 
+    public static final int DEFAULT_MIN_API_LEVEL = 1;
+
+    public static final int DEFAULT_MAX_API_LEVEL = Integer.MAX_VALUE;
+
+    public static final double DEFAULT_MIN_SYSTEM_VERSION = 1;
+
+    public static final double DEFAULT_MAX_SYSTEM_VERSITON = Double.MAX_VALUE;
+
     @JSONField(name = "min_api_level")
-    private int minApiLevel = 1;
+    private int minApiLevel = DEFAULT_MIN_API_LEVEL;
 
     @JSONField(name = "max_api_level")
-    private int maxApiLevel = Integer.MAX_VALUE;
+    private int maxApiLevel = DEFAULT_MAX_API_LEVEL;
 
     @JSONField(name = "min_system_version")
-    private double minSystemVersion = 1;
+    private double minSystemVersion = DEFAULT_MIN_SYSTEM_VERSION;
 
     @JSONField(name = "max_system_version")
-    private double maxSystemVersion = Double.MAX_VALUE;
+    private double maxSystemVersion = DEFAULT_MAX_SYSTEM_VERSITON;
 
     @JSONField(name = "bad_devices")
     private String[] badDevices = {};
@@ -61,4 +69,36 @@ public class Context implements Serializable {
         this.badDevices = badDevices;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Context)) {
+            return false;
+        }
+
+        Context context = (Context) obj;
+        boolean badDevicesEquals = true;
+
+        if (badDevices.length != context.badDevices.length) {
+            badDevicesEquals = false;
+        } else {
+            for (int i = 0, l = badDevices.length; i < l; i ++) {
+                if (!badDevices[i].equals(context.badDevices[i])) {
+                    badDevicesEquals = false;
+                    break;
+                }
+            }
+        }
+
+        return badDevicesEquals &&
+                minApiLevel == context.minApiLevel &&
+                maxApiLevel == context.maxApiLevel &&
+                minSystemVersion == context.minSystemVersion &&
+                maxSystemVersion == context.maxSystemVersion;
+    }
+
+    @Override
+    public int hashCode() {
+        // we don't have to override hashCode because our equals method uses every field of a context obj
+        return super.hashCode();
+    }
 }

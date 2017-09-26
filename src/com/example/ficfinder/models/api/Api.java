@@ -52,4 +52,17 @@ public abstract class Api implements Serializable {
 
     public abstract String getSiganiture();
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Api)) {
+            return false;
+        }
+
+        return this.getSiganiture().equals(((Api) obj).getSiganiture());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.getSiganiture().hashCode();
+    }
 }
