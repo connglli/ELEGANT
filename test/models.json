@@ -2,6 +2,98 @@
   {
     "api": {
       "@type": "method",
+      "pkg": "android.media",
+      "iface": "AudioManager",
+      "method": "setRouting",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 1,
+      "max_api_level": 2
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "onBackPressed",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "overridePendingTransition",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "View",
+      "method": "setScrollbarFadingEnabled",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
       "pkg": "android.os",
       "iface": "HandlerThread",
       "method": "quit",
@@ -12,8 +104,358 @@
       "paramList": []
     },
     "context": {
-      "min_api_level": 1,
-      "max_api_level": 3
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.media",
+      "iface": "AudioManager",
+      "method": "requestAudioFocus",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.media.AudioManager",
+          "iface": "OnAudioFocusChangeListener"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 8,
+      "max_api_level": 25
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "Context",
+      "method": "getExternalCacheDir",
+      "ret": {
+        "pkg": "java.io",
+        "iface": "File"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 8
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "Display",
+      "method": "getRotation",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 8
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "AbsListView",
+      "method": "setOverScrollMode",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 9
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.os",
+      "iface": "Environment",
+      "method": "isExternalStorageRemovable",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 9
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "getActionBar",
+      "ret": {
+        "pkg": "android.app",
+        "iface": "ActionBar"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  }, 
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "MenuItem",
+      "method": "setShowAsAction",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "invalidateOptionsMenu",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.database.sqlite",
+      "iface": "SQLiteDatabase",
+      "method": "openDatabase",
+      "ret": {
+        "pkg": "android.database.sqlite",
+        "iface": "SQLiteDatabase"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "android.database.sqlite.SQLiteDatabase",
+          "iface": "CursorFactory"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "android.database",
+          "iface": "DatabaseErrorHandler"
+        },
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ClipboardManager",
+      "method": "setText",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "CharSequence"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "GridView",
+      "method": "getNumColumns",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.appwidget",
+      "iface": "AppWidgetManager",
+      "method": "partiallyUpdateAppWidget",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "android.widget",
+          "iface": "RemoteViews"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.speech.tts",
+      "iface": "TextToSpeech",
+      "method": "setOnUtteranceProgressListener",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.speech.tts",
+          "iface": "UtteranceProgressListener"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 15
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.database.sqlite",
+      "iface": "SQLiteDatabase",
+      "method": "disableWriteAheadLogging",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.database.sqlite",
+      "iface": "SQLiteDatabase",
+      "method": "deleteDatabase",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": [
+        {
+          "pkg": "java.io",
+          "iface": "File"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "AlarmManager",
+      "method": "setExact",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "long"
+        },
+        {
+          "pkg": "android.app",
+          "iface": "PendingIntent"
+        },
+      ]
+    },
+    "context": {
+      "min_api_level": 19
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.net",
+      "iface": "ConnectivityManager",
+      "method": "getBackgroundDataSetting",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 3,
+      "max_api_level": 14
     }
   },
   {

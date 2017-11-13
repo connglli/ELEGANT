@@ -134,45 +134,49 @@ public class Finder {
         String type = model.getApi().getClass().toString().split(" ")[1];
         Set<Callsite> callsites = new HashSet<>(128);
 
-        // get callsites of the specific api
-        switch (type) {
-            case ApiField.TAG: {
-                // TODO I have no idea how to get the callsite of a specific field
+        try {
+            // get callsites of the specific api
+            switch (type) {
+                case ApiField.TAG: {
+                    // TODO I have no idea how to get the callsite of a specific field
 
-                System.out.println("@WARNING: Model of @field is not supported by now");
+                    System.out.println("@WARNING: Model of @field is not supported by now");
 
-                // ApiField apiField = (ApiField) model.getApi();
-                // SootField sootField = scene.getField(apiField.getSiganiture());
+                    // ApiField apiField = (ApiField) model.getApi();
+                    // SootField sootField = scene.getField(apiField.getSiganiture());
 
-                break;
-            }
-
-            case ApiMethod.TAG: {
-                ApiMethod apiMethod = (ApiMethod) model.getApi();
-                SootMethod sootMethod = scene.getMethod(apiMethod.getSiganiture());
-
-                Iterator<Edge> edges = callGraph.edgesInto(sootMethod);
-
-                while (edges.hasNext()) {
-                    Edge edge = edges.next();
-                    callsites.add(new Callsite(edge.src(), edge.srcUnit()));
+                    break;
                 }
 
-                break;
+                case ApiMethod.TAG: {
+                    ApiMethod apiMethod = (ApiMethod) model.getApi();
+                    SootMethod sootMethod = scene.getMethod(apiMethod.getSiganiture());
+
+                    Iterator<Edge> edges = callGraph.edgesInto(sootMethod);
+
+                    while (edges.hasNext()) {
+                        Edge edge = edges.next();
+                        callsites.add(new Callsite(edge.src(), edge.srcUnit()));
+                    }
+
+                    break;
+                }
+
+                case ApiIface.TAG: {
+                    // TODO I have no idea how to get the callsite of a specific interface
+
+                    System.out.println("@WARNING: Model of @iface is not supported by now");
+
+                    // ApiIface apiIface = (ApiIface) model.getApi();
+                    // SootClass sootIface = scene.getSootClass(apiIface.getSiganiture());
+
+                    break;
+                }
+
+                default: throw new RuntimeException("Invalid api type: " + type);
             }
-
-            case ApiIface.TAG: {
-                // TODO I have no idea how to get the callsite of a specific interface
-
-                System.out.println("@WARNING: Model of @iface is not supported by now");
-
-                // ApiIface apiIface = (ApiIface) model.getApi();
-                // SootClass sootIface = scene.getSootClass(apiIface.getSiganiture());
-
-                break;
-            }
-
-            default: throw new RuntimeException("Invalid api type: " + type);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return callsites;

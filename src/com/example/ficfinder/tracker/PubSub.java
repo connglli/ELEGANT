@@ -17,7 +17,7 @@ public interface PubSub {
     int subscribe(Handle handle);
 
     /**
-     * Unsubscrib to watch issues
+     * Unsubscribe to watch issues
      *
      * @param handler
      */
