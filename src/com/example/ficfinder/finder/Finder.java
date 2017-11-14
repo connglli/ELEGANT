@@ -1,26 +1,25 @@
 package com.example.ficfinder.finder;
 
 
-import com.example.ficfinder.Configs;
 import com.example.ficfinder.Env;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiField;
 import com.example.ficfinder.models.api.ApiIface;
 import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.tracker.Issue;
+import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
+import soot.jimple.AssignStmt;
+import soot.jimple.IfStmt;
 import soot.jimple.Stmt;
-import soot.jimple.infoflow.android.manifest.ProcessManifest;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
 import soot.toolkits.graph.Block;
 import soot.toolkits.graph.BriefUnitGraph;
-import soot.toolkits.graph.pdg.HashMutablePDG;
-import soot.toolkits.graph.pdg.PDGNode;
-import soot.toolkits.graph.pdg.ProgramDependenceGraph;
-import soot.toolkits.graph.pdg.Region;
+import soot.toolkits.graph.pdg.*;
+
 
 import java.util.*;
 
@@ -29,6 +28,8 @@ public class Finder {
     // Singleton
 
     private static Finder instance;
+
+    private Logger logger = new Logger(Finder.class);
 
     public static Finder v() {
         if (instance == null) {
@@ -41,35 +42,33 @@ public class Finder {
     public void run() {
         this.setUp();
         this.core();
-        this.tearDown();
     }
 
     private void setUp() {
-        // for performance
-        Options options = Options.v();
-        PackManager packManager = PackManager.v();
+        G.reset();
 
-        // gc
-        System.gc();
+        Options.v().set_process_dir(Collections.singletonList("test"));
+        Options.v().set_src_prec(Options.src_prec_java);
+        Options.v().set_output_format(Options.output_format_none);
 
-        // options pass to soot/flowdroid
-        options.set_src_prec(Options.src_prec_apk);
-        options.set_process_dir(Collections.singletonList(Configs.v().getArg(Configs.APK)));
-        options.set_android_jars(Env.ANDROID_PLATFORMS_PATH);
-        options.set_whole_program(true);
-        options.set_allow_phantom_refs(true);
-        options.set_output_format(Options.output_format_jimple);
-        options.setPhaseOption("cg.spark", "on");
+        Options.v().keep_line_number();
+        Options.v().set_prepend_classpath(true);
+        Options.v().set_whole_program(true);
+        Options.v().set_allow_phantom_refs(true);
+        Options.v().set_no_bodies_for_excluded(true);
+        Options.v().set_verbose(false);
+        Options.v().setPhaseOption("cg.spark", "on");
 
         Scene.v().loadNecessaryClasses();
+        Scene.v().loadBasicClasses();
 
-        // fake main created by flowdroid
-        SootMethod entryPoint = Env.v().getApp().getEntryPointCreator().createDummyMain();
-        Options.v().set_main_class(entryPoint.getSignature());
-        Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
+        // TODO: main class: this is hard coding
+        SootClass c = Scene.v().loadClassAndSupport("com.example.DozeChecker");
+        c.setApplicationClass();
+        Scene.v().setMainClass(c);
 
         // add a transform to generate PDG
-        packManager.getPack("jtp").add(new Transform("jtp.pdg_transform", new BodyTransformer() {
+        PackManager.v().getPack("jtp").add(new Transform("jtp.pdg_transform", new BodyTransformer() {
             @Override
             protected void internalTransform(Body body, String s, Map<String, String> map) {
                 String methodSignature = body.getMethod().getSignature();
@@ -78,13 +77,12 @@ public class Finder {
                             methodSignature,
                             new HashMutablePDG(new BriefUnitGraph(body)));
                 } catch (Exception e) {
-                    System.out.println("@WARNING: Error in generating PDG for " + methodSignature);
+                    logger.w("Error in generating PDG for " + methodSignature);
                 }
             }
         }));
 
-        // run it
-        packManager.runPacks();
+        PackManager.v().runPacks();
     }
 
     /**
@@ -92,7 +90,7 @@ public class Finder {
      *
      */
     private void core() {
-        System.out.println("Core Algorithm goes here");
+        logger.i("Core Algorithm goes here");
 
         Set<ApiContext> models = Env.v().getModels();
 
@@ -119,10 +117,6 @@ public class Finder {
         }
     }
 
-    private void tearDown() {
-
-    }
-
     /**
      * Compute all callsites of a specific api
      *
@@ -140,7 +134,7 @@ public class Finder {
                 case ApiField.TAG: {
                     // TODO I have no idea how to get the callsite of a specific field
 
-                    System.out.println("@WARNING: Model of @field is not supported by now");
+                    logger.w("Model of @field is not supported by now");
 
                     // ApiField apiField = (ApiField) model.getApi();
                     // SootField sootField = scene.getField(apiField.getSiganiture());
@@ -165,7 +159,7 @@ public class Finder {
                 case ApiIface.TAG: {
                     // TODO I have no idea how to get the callsite of a specific interface
 
-                    System.out.println("@WARNING: Model of @iface is not supported by now");
+                    logger.w("Model of @iface is not supported by now");
 
                     // ApiIface apiIface = (ApiIface) model.getApi();
                     // SootClass sootIface = scene.getSootClass(apiIface.getSiganiture());
@@ -176,7 +170,7 @@ public class Finder {
                 default: throw new RuntimeException("Invalid api type: " + type);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.w("Cannot find `" + model.getApi().getSiganiture() + "`");
         }
 
         return callsites;
@@ -187,14 +181,14 @@ public class Finder {
      *
      */
     private boolean maybeFICable(ApiContext model, Callsite callsite) {
-        ProcessManifest manifest = Env.v().getManifest();
+        // TODO This is hard coding
 
         // compiled sdk version, used to check whether an api
         // is accessible or not
-        final int targetSdk = manifest.targetSdkVersion();
-        final int minSdk = manifest.getMinSdkVersion();
+        final int targetSdk = 23;
+        final int minSdk = 2;
 
-        return !model.hasBadDevices() && model.matchApiLevel(targetSdk, minSdk);
+        return model.hasBadDevices() || !model.matchApiLevel(targetSdk, minSdk);
     }
 
     /**
@@ -249,43 +243,105 @@ public class Finder {
         Set<Unit> slice = new HashSet<>(128);
         Map<String, ProgramDependenceGraph> pdgMapping = Env.v().getPdgMapping();
 
-        Unit callsiteUnit = callsite.getUnit();
-        PDGNode srcNode = null;
-        ProgramDependenceGraph pdg = null;
-
         // 1. get the corresponding pdg, which describes the unit's method
-        pdg = pdgMapping.get(callsite.getMethod().getSignature());
+        SootMethod caller = callsite.getMethod();
+        ProgramDependenceGraph pdg = pdgMapping.get(caller.getSignature());
+        Unit callerUnit = callsite.getUnit();
 
-        // 2. find the corresponding PDGNode srcNode, which contains the unit
-        for (PDGNode n : pdg) {
-            Iterator<Unit> iterator = unitIteratorOfPDGNode(n);
+        // 2. find the dependents of callerUnit
+        slice.addAll(findDependentOf(pdg, callerUnit));
 
-            if (iterator != null) {
-                while (iterator.hasNext()) {
-                    if (iterator.next().equals(callsiteUnit)) {
-                        srcNode = n;
-                        break;
-                    }
-                }
-            }
+        // 3. find the nearest IfStmt of the caller unit
+        Unit ifUnit = null; int ifIdx = -1;
+        List<Unit> unitsOfCaller = new ArrayList<>(caller.getActiveBody().getUnits());
 
-            if (iterator != null && srcNode != null) {
-                break;
-            }
+        for (int i = 0; i < unitsOfCaller.size(); i ++) {
+            Unit u = unitsOfCaller.get(i);
+            if (!u.equals(callerUnit)) { if (u instanceof IfStmt) { ifUnit = u; ifIdx = i; } }
+            else { break; }
         }
 
-        // 3. find all the dependent PDGNodes of srcNode
-        List<PDGNode> dependents = srcNode.getBackDependets();
-
-        // 4. get all the units of each dependent PDGNode
-        for (PDGNode dependent : dependents) {
-            Iterator<Unit> iter = unitIteratorOfPDGNode(dependent);
-            while (iter.hasNext()) {
-                slice.add(iter.next());
+        // 4.  find the dependents of ifUnit(which defines the variable used in ifUnit)
+        if (ifUnit != null) {
+            IfStmt ifStmt = (IfStmt) ifUnit;
+            // get use boxed, e.g. [$v1, $v2] of `if $v1 > $v2 goto label 0`
+            Set<Value> useValuesOfIfUnit = new HashSet<>(2);
+            for (ValueBox vb : ifStmt.getCondition().getUseBoxes()) {
+                Value v = vb.getValue();
+                // we only save Locals
+                if (v instanceof Local) {
+                    useValuesOfIfUnit.add(vb.getValue());
+                }
+            }
+            for (int i = ifIdx - 1; i >= 0; i --) {
+                Unit u = unitsOfCaller.get(i);
+                // $vx = ...
+                if (u instanceof AssignStmt) {
+                    AssignStmt assignStmt = (AssignStmt) u;
+                    List<ValueBox> defBoxesOfAssignUnit = assignStmt.getDefBoxes();
+                    // check whether $vx in useBoxesOfIfUnit, if yes, then add it to slice
+                    for (ValueBox vb : defBoxesOfAssignUnit) {
+                        if (useValuesOfIfUnit.contains(vb.getValue())) {
+                            slice.add(assignStmt);
+                            // $vx = virtualinvoke method, then we need to add all stmt in method
+                            if (assignStmt.containsInvokeExpr()) {
+                                SootMethod method = assignStmt.getInvokeExpr().getMethod();
+                                slice.addAll(assignStmt.getInvokeExpr().getMethod().getActiveBody().getUnits());
+                            }
+                        }
+                    }
+                }
             }
         }
 
         return slice;
+    }
+
+    /**
+     * Find node of unit in pdg
+     *
+     */
+    private PDGNode findNodeOf(ProgramDependenceGraph pdg, Unit unit) {
+        PDGNode node = null;
+
+        for (PDGNode n : pdg) {
+            Iterator<Unit> iterator = unitIteratorOfPDGNode(n);
+            if (iterator == null) continue;
+
+            while (iterator.hasNext()) {
+                if (iterator.next().equals(unit)) { node = n; break; }
+            }
+
+            if (node != null) { break; }
+        }
+
+        return node;
+    }
+
+    /**
+     * Find dependent units of unit unit
+     *
+     */
+    private Set<Unit> findDependentOf(ProgramDependenceGraph pdg, Unit unit) {
+        Set<Unit> deps = new HashSet<>(128);
+
+        // 1. find the corresponding PDGNode srcNode, which contains the unit
+        PDGNode srcNode = findNodeOf(pdg, unit);
+        if (srcNode == null) { return deps; }
+
+        // 2. find all the dependent PDGNodes of srcNode
+        List<PDGNode> depOfCallerUnit = pdg.getDependents(srcNode);
+
+        // 3. get all the units of each dependent PDGNodeSystem.out.println("=========== for " + unit);
+        for (PDGNode dependent : depOfCallerUnit) {
+            Iterator<Unit> iter = unitIteratorOfPDGNode(dependent);
+            while (iter.hasNext()) {
+                Unit u = iter.next();
+                deps.add(u);
+            }
+        }
+
+        return deps;
     }
 
     /**
@@ -306,9 +362,9 @@ public class Finder {
         if (type.equals(PDGNode.Type.CFGNODE)) {
             iterator = ((Block) n.getNode()).iterator();
         } else if (type.equals(PDGNode.Type.REGION)) {
-            iterator = ((Region) n.getNode()).getUnitGraph().iterator();
+            iterator = ((PDGRegion) n.getNode()).getUnitGraph().iterator();
         } else {
-            System.out.println("Only REGION and CFGNODE are allowed");
+            logger.w("Only REGION and CFGNODE are allowed");
         }
 
         return iterator;

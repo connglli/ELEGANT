@@ -18,7 +18,12 @@ public class Issue implements PubSub.Issue {
     private ApiContext issueModel;
 
     public static Issue create(Callsite callsite, ApiContext issueModel) {
-        return new Issue(callsite.getMethod().getTag("SourceFileTag").getName(),
+//        return new Issue(callsite.getMethod().getTag("SourceFileTag").getName(),
+//                callsite.getUnit().getJavaSourceStartLineNumber(),
+//                callsite.getUnit().getJavaSourceStartColumnNumber(),
+//                callsite.getMethod().getSignature(),
+//                issueModel);
+        return new Issue("~",
                 callsite.getUnit().getJavaSourceStartLineNumber(),
                 callsite.getUnit().getJavaSourceStartColumnNumber(),
                 callsite.getMethod().getSignature(),

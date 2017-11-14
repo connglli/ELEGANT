@@ -19,7 +19,7 @@ public class Configs {
 
     public static final String MODELS = "models";
 
-    public static final String APK = "apk";
+    public static final String JAVA = "java";
 
     // Singleton
 
@@ -65,7 +65,7 @@ public class Configs {
 
             switch (key) {
                 case MODELS: parseModels(value); args.put(key, value); break;
-                case APK: parseApk(value); args.put(key, value); break;
+                case JAVA: parseJava(value); args.put(key, value); break;
                 default: /* we will pass unknown configs */ break;
             }
         }
@@ -95,30 +95,13 @@ public class Configs {
         }
     }
 
-    private void parseApk(@NotNull String apkPath) {
+    private void parseJava(@NotNull String javaPath) {
         try {
-            if (!apkPath.endsWith(".apk")) {
-                throw new RuntimeException("File " + apkPath + " may not be an legal apk file");
+            if (!javaPath.endsWith(".java")) {
+                throw new RuntimeException("File " + javaPath + " may not be an legal apk file");
             }
-
-            ProcessManifest manifest = new ProcessManifest(apkPath);
-
-            // set environment
-            Env.v().setManifest(manifest);
-
-            // setup application
-            SetupApplication app = new SetupApplication(Env.ANDROID_PLATFORMS_PATH, apkPath);
-            try {
-                app.calculateSourcesSinksEntrypoints(Env.SOURCES_AND_SINKS_TEXT_PATH);
-            } catch (Exception e) {
-                throw new RuntimeException("Sources and sinks file " + Env.SOURCES_AND_SINKS_TEXT_PATH + " is not available");
-            }
-            G.reset();
-
-            // set environment
-            Env.v().setApp(app);
         } catch (Exception e) {
-            throw new RuntimeException("File " + apkPath + " does not exist");
+            throw new RuntimeException("File " + javaPath + " does not exist");
         }
     }
 
