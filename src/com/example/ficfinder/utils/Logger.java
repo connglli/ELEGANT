@@ -18,6 +18,10 @@ public class Logger {
         this.cls = cls;
     }
 
+    public void c(String log) {
+        System.out.println(log);
+    }
+
     public void i(String log) {
         if (level > INFORMATION) {
             System.out.println(cls  + ": " + "@INFORMATION: " + log);

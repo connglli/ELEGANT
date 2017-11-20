@@ -82,25 +82,4 @@ public class Issue implements PubSub.Issue {
         this.issueModel = issueModel;
     }
 
-    @Override
-    public String toString() {
-        Api api = issueModel.getApi();
-        Context context = issueModel.getContext();
-
-        String badDevicesInfo = "";
-
-        if (issueModel.hasBadDevices()) {
-            badDevicesInfo = "except devices: ";
-            String[] badDevices = context.getBadDevices();
-            for (int i = 0, l = badDevices.length; i < l - 1; i ++) {
-                badDevicesInfo += badDevices[i] + ", ";
-            }
-            badDevicesInfo += badDevices[badDevices.length - 1];
-        }
-
-        return "API " + api.getSiganiture() + " should be used within the context: \n" +
-                "\t android API level: [" + context.getMinApiLevel() + ", " + (context.getMaxApiLevel() == Context.DEFAULT_MAX_API_LEVEL ? "~" : context.getMaxApiLevel()) + "]\n" +
-                "\t android system version: [" + context.getMaxSystemVersion() + ", " + (context.getMaxSystemVersion() == context.DEFAULT_MAX_SYSTEM_VERSITON ? "~" : context.getMaxSystemVersion()) + "]\n" +
-                "\t " + badDevicesInfo + "\n";
-    }
 }

@@ -234,9 +234,9 @@ public class Finder {
      *
      * we find the backward slicing of a unit by:
      *  1. get the corresponding pdg, which describes the unit's method
-     *  2. find the corresponding PDGNode srcNode, which contains the unit
-     *  3. find all the dependent PDGNodes of srcNode
-     *  4. get all the units of each dependent PDGNode
+     *  2. find the dependents of callerUnit
+     *  3. find the nearest IfStmt of the caller unit
+     *  4. find the dependents of ifUnit(which defines the variable used in ifUnit)
      *
      */
     private Set<Unit> runBackwardSlicingFor(Callsite callsite) {
