@@ -3,11 +3,11 @@
     "api": {
       "@type": "method",
       "pkg": "com.example",
-      "iface": "DozeChecker",
+      "iface": "Example",
       "method": "go",
       "ret": {
         "pkg": "",
-        "iface": "void"
+        "iface": "int"
       },
       "paramList": []
     },

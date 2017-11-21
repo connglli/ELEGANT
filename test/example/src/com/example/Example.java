@@ -2,14 +2,22 @@ package com.example;
 
 import com.example.os.*;
 
-public class DozeChecker {
+public class Example {
+
+    public static final int MAX_SIZE = 100;
 
     public boolean isCompatible() {
         return Build.SDK_VERSION > 26;
     }
 
-    public void go() {
+    public int go() {
+        int mul = 1;
 
+        for (int i = 1; i <= MAX_SIZE; i ++) {
+            mul *= i;
+        }
+
+        return mul;
     }
 
     public void goWithChecking() {
@@ -23,7 +31,7 @@ public class DozeChecker {
     }
 
     public static void main(String args[]) {
-        DozeChecker d = new DozeChecker();
+        Example d = new Example();
         d.goWithoutChecking();
         d.goWithChecking();
     }

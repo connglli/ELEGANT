@@ -13,6 +13,11 @@ import java.util.Set;
 
 public class Env {
 
+    // Environment variable of FicFinder
+
+    // k neighbors, used in backward slicing
+    public static final int ENV_K_NEIGHBORS = 5;
+
     // Singleton
 
     private static Env instance;
@@ -37,20 +42,20 @@ public class Env {
         return models;
     }
 
-    public Map<String, ProgramDependenceGraph> getPdgMapping() {
-        return pdgMapping;
+    public ProgramDependenceGraph getPDG(String method) {
+        return pdgMapping.get(method);
     }
 
     public void setModels(Set<ApiContext> models) {
         this.models = models;
     }
 
-    public void setPdgMapping(Map<String, ProgramDependenceGraph> pdgMapping) {
-        this.pdgMapping = pdgMapping;
+    public void setPDG(String method, ProgramDependenceGraph pdg) {
+        this.pdgMapping.put(method, pdg);
     }
 
     /**
-     * Emit an issue to IFCTracker
+     * Emit an issue to Tracker
      *
      * @param issue
      */

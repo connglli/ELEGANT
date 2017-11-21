@@ -1,0 +1,22 @@
+public class com.example.os.Build extends java.lang.Object
+{
+    public static final int SDK_VERSION;
+
+    static void <clinit>()
+    {
+        <com.example.os.Build: int SDK_VERSION> = 27;
+
+        return;
+    }
+
+    public void <init>()
+    {
+        com.example.os.Build this;
+
+        this := @this: com.example.os.Build;
+
+        specialinvoke this.<java.lang.Object: void <init>()>();
+
+        return;
+    }
+}

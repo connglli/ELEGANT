@@ -12,7 +12,6 @@ import com.example.ficfinder.utils.Strings;
 import soot.*;
 import soot.jimple.AssignStmt;
 import soot.jimple.IfStmt;
-import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
@@ -47,8 +46,8 @@ public class Finder {
     private void setUp() {
         G.reset();
 
-        Options.v().set_process_dir(Collections.singletonList("test"));
-        Options.v().set_src_prec(Options.src_prec_java);
+        Options.v().set_process_dir(Collections.singletonList("test/example/out"));
+        Options.v().set_src_prec(Options.src_prec_class);
         Options.v().set_output_format(Options.output_format_none);
 
         Options.v().keep_line_number();
@@ -63,7 +62,7 @@ public class Finder {
         Scene.v().loadBasicClasses();
 
         // TODO: main class: this is hard coding
-        SootClass c = Scene.v().loadClassAndSupport("com.example.DozeChecker");
+        SootClass c = Scene.v().loadClassAndSupport("com.example.Example");
         c.setApplicationClass();
         Scene.v().setMainClass(c);
 
@@ -73,8 +72,7 @@ public class Finder {
             protected void internalTransform(Body body, String s, Map<String, String> map) {
                 String methodSignature = body.getMethod().getSignature();
                 try {
-                    Env.v().getPdgMapping().put(
-                            methodSignature,
+                    Env.v().setPDG(methodSignature,
                             new HashMutablePDG(new BriefUnitGraph(body)));
                 } catch (Exception e) {
                     logger.w("Error in generating PDG for " + methodSignature);
@@ -197,32 +195,47 @@ public class Finder {
      */
     public boolean canHandleIssue(ApiContext model, Unit unit) {
         // we only parse Jimple
-        if (!(unit instanceof Stmt) || !((Stmt) unit).containsFieldRef()) {
+        if (!(unit instanceof AssignStmt)) {
             return false;
         }
 
         //
-        // TODO CHECK
-        //  I don;t know exactly what FieldRef of a Stmt is!!!
-        //  what if a Stmt contains more than one SootField?
+        // TODO
         //
-        Stmt stmt = (Stmt) unit;
-        SootField field = stmt.getFieldRef().getField();
-        String siganiture = field.getSignature();
+        AssignStmt stmt = (AssignStmt) unit;
+        List<ValueBox> useValueBoxes = stmt.getUseBoxes();
 
-        if (model.needCheckApiLevel() || model.needCheckSystemVersion()) {
-            return Strings.contains(siganiture,
-                    "android.os.Build.VERSION_CODES",
-                    "android.os.Build.VERSION.SDK_INT",
-                    "android.os.Build.VERSION.SDK");
-        }
+        for (ValueBox vb : useValueBoxes) {
+            String siganiture = vb.getValue().toString();
 
-        if (model.hasBadDevices()) {
-            return Strings.contains(siganiture,
-                    "android.os.Build.BOARD",
-                    "android.os.Build.BRAND",
-                    "android.os.Build.DEVICE",
-                    "android.os.Build.PRODUCT");
+            if (model.needCheckApiLevel() || model.needCheckSystemVersion()) {
+                return Strings.contains(siganiture,
+                        "android.os.Build.VERSION_CODES",
+                        "android.os.Build.VERSION.SDK_INT",
+                        "android.os.Build.VERSION.SDK",
+                        "os.Build.VERSION_CODES",
+                        "os.Build.VERSION.SDK_INT",
+                        "os.Build.VERSION.SDK",
+                        "Build.VERSION_CODES",
+                        "Build.VERSION.SDK_INT",
+                        "Build.VERSION.SDK");
+            }
+
+            if (model.hasBadDevices()) {
+                return Strings.contains(siganiture,
+                        "android.os.Build.BOARD",
+                        "android.os.Build.BRAND",
+                        "android.os.Build.DEVICE",
+                        "android.os.Build.PRODUCT",
+                        "os.Build.BOARD",
+                        "os.Build.BRAND",
+                        "os.Build.DEVICE",
+                        "os.Build.PRODUCT",
+                        "Build.BOARD",
+                        "Build.BRAND",
+                        "Build.DEVICE",
+                        "Build.PRODUCT");
+            }
         }
 
 
@@ -241,52 +254,51 @@ public class Finder {
      */
     private Set<Unit> runBackwardSlicingFor(Callsite callsite) {
         Set<Unit> slice = new HashSet<>(128);
-        Map<String, ProgramDependenceGraph> pdgMapping = Env.v().getPdgMapping();
 
         // 1. get the corresponding pdg, which describes the unit's method
         SootMethod caller = callsite.getMethod();
-        ProgramDependenceGraph pdg = pdgMapping.get(caller.getSignature());
+        ProgramDependenceGraph pdg = Env.v().getPDG(caller.getSignature());
         Unit callerUnit = callsite.getUnit();
 
         // 2. find the dependents of callerUnit
         slice.addAll(findDependentOf(pdg, callerUnit));
 
-        // 3. find the nearest IfStmt of the caller unit
-        Unit ifUnit = null; int ifIdx = -1;
+        // 3. find the nearest K IfStmt of the caller unit
         List<Unit> unitsOfCaller = new ArrayList<>(caller.getActiveBody().getUnits());
+        List<Map.Entry<Integer, Unit>> kIfStmtNeightbors = findKNeighbors(unitsOfCaller, callerUnit);
+        Iterator<Map.Entry<Integer, Unit>> iterator = kIfStmtNeightbors.iterator();
 
-        for (int i = 0; i < unitsOfCaller.size(); i ++) {
-            Unit u = unitsOfCaller.get(i);
-            if (!u.equals(callerUnit)) { if (u instanceof IfStmt) { ifUnit = u; ifIdx = i; } }
-            else { break; }
-        }
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, Unit> entry = iterator.next();
+            int ifIdx   = entry.getKey();
+            Unit ifUnit = entry.getValue();
 
-        // 4.  find the dependents of ifUnit(which defines the variable used in ifUnit)
-        if (ifUnit != null) {
-            IfStmt ifStmt = (IfStmt) ifUnit;
-            // get use boxed, e.g. [$v1, $v2] of `if $v1 > $v2 goto label 0`
-            Set<Value> useValuesOfIfUnit = new HashSet<>(2);
-            for (ValueBox vb : ifStmt.getCondition().getUseBoxes()) {
-                Value v = vb.getValue();
-                // we only save Locals
-                if (v instanceof Local) {
-                    useValuesOfIfUnit.add(vb.getValue());
+            if (ifUnit != null) {
+                IfStmt ifStmt = (IfStmt) ifUnit;
+                // get use boxed, e.g. [$v1, $v2] of `if $v1 > $v2 goto label 0`
+                Set<Value> useValuesOfIfUnit = new HashSet<>(2);
+                for (ValueBox vb : ifStmt.getCondition().getUseBoxes()) {
+                    Value v = vb.getValue();
+                    // we only save Locals
+                    if (v instanceof Local) {
+                        useValuesOfIfUnit.add(vb.getValue());
+                    }
                 }
-            }
-            for (int i = ifIdx - 1; i >= 0; i --) {
-                Unit u = unitsOfCaller.get(i);
-                // $vx = ...
-                if (u instanceof AssignStmt) {
-                    AssignStmt assignStmt = (AssignStmt) u;
-                    List<ValueBox> defBoxesOfAssignUnit = assignStmt.getDefBoxes();
-                    // check whether $vx in useBoxesOfIfUnit, if yes, then add it to slice
-                    for (ValueBox vb : defBoxesOfAssignUnit) {
-                        if (useValuesOfIfUnit.contains(vb.getValue())) {
-                            slice.add(assignStmt);
-                            // $vx = virtualinvoke method, then we need to add all stmt in method
-                            if (assignStmt.containsInvokeExpr()) {
-                                SootMethod method = assignStmt.getInvokeExpr().getMethod();
-                                slice.addAll(assignStmt.getInvokeExpr().getMethod().getActiveBody().getUnits());
+                for (int i = ifIdx - 1; i >= 0; i --) {
+                    Unit u = unitsOfCaller.get(i);
+                    // $vx = ...
+                    if (u instanceof AssignStmt) {
+                        AssignStmt assignStmt = (AssignStmt) u;
+                        List<ValueBox> defBoxesOfAssignUnit = assignStmt.getDefBoxes();
+                        // check whether $vx in useBoxesOfIfUnit, if yes, then add it to slice
+                        for (ValueBox vb : defBoxesOfAssignUnit) {
+                            if (useValuesOfIfUnit.contains(vb.getValue())) {
+                                slice.add(assignStmt);
+                                // $vx = virtualinvoke method, then we need to add all stmt in method
+                                if (assignStmt.containsInvokeExpr()) {
+                                    SootMethod method = assignStmt.getInvokeExpr().getMethod();
+                                    slice.addAll(assignStmt.getInvokeExpr().getMethod().getActiveBody().getUnits());
+                                }
                             }
                         }
                     }
@@ -295,6 +307,31 @@ public class Finder {
         }
 
         return slice;
+    }
+
+    /**
+     * Find K IfStmt neighbors
+     *
+     */
+    private List<Map.Entry<Integer, Unit>> findKNeighbors(List<Unit> unitsOfCaller, Unit callerUnit) {
+        LinkedList<Map.Entry<Integer, Unit>> queue = new LinkedList<>();
+
+        for (int i = 0; i < unitsOfCaller.size(); i ++) {
+            Unit u = unitsOfCaller.get(i);
+
+            // stop here
+            if (u.equals(callerUnit)) { break; }
+
+            // add to queue
+            if (u instanceof IfStmt) {
+                if (queue.size() == Env.ENV_K_NEIGHBORS) {
+                    queue.poll();
+                }
+                queue.offer(new HashMap.SimpleEntry<>(i, u));
+            }
+        }
+
+        return queue;
     }
 
     /**
@@ -332,7 +369,7 @@ public class Finder {
         // 2. find all the dependent PDGNodes of srcNode
         List<PDGNode> depOfCallerUnit = pdg.getDependents(srcNode);
 
-        // 3. get all the units of each dependent PDGNodeSystem.out.println("=========== for " + unit);
+        // 3. get all the units of each dependent PDGNode
         for (PDGNode dependent : depOfCallerUnit) {
             Iterator<Unit> iter = unitIteratorOfPDGNode(dependent);
             while (iter.hasNext()) {
