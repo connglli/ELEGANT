@@ -22,7 +22,11 @@ public class Example {
 
     public void goWithChecking() {
         if (isCompatible()) {
-            go();
+            int mul = 1;
+            for (int i = 1; i <= MAX_SIZE; i ++) {
+                mul *= i;
+                if (mul % 7 == 0 && mul % 3 == 0 && mul % 2 == 0) { go(); }
+            }
         }
     }
 

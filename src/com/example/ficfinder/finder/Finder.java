@@ -399,7 +399,7 @@ public class Finder {
         if (type.equals(PDGNode.Type.CFGNODE)) {
             iterator = ((Block) n.getNode()).iterator();
         } else if (type.equals(PDGNode.Type.REGION)) {
-            iterator = ((PDGRegion) n.getNode()).getUnitGraph().iterator();
+            iterator = ((IRegion) n.getNode()).getUnitGraph().iterator();
         } else {
             logger.w("Only REGION and CFGNODE are allowed");
         }

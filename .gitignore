@@ -1,6 +1,7 @@
 # Compiled class file
 out/*
 *.class
+*.jimple
 
 # Log file
 *.log
