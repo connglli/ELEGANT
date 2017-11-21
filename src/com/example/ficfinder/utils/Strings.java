@@ -12,4 +12,16 @@ public class Strings {
         return false;
     }
 
+    public static boolean containsIgnoreCase(String src, String ...k) {
+        String lowerSrc = src.toLowerCase();
+        for (int i = 0, l = k.length; i < l; i ++) {
+            if (lowerSrc.contains(k[i].toLowerCase())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
 }

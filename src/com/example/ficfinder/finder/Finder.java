@@ -9,9 +9,11 @@ import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.tracker.Issue;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.Strings;
+import polyglot.ast.Assign;
 import soot.*;
 import soot.jimple.AssignStmt;
 import soot.jimple.IfStmt;
+import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
@@ -203,13 +205,20 @@ public class Finder {
         // TODO
         //
         AssignStmt stmt = (AssignStmt) unit;
+
+        // trick
+        if (stmt.containsInvokeExpr()) {
+            return Strings.containsIgnoreCase(stmt.getInvokeExpr().getMethod().getSignature(), "compatible");
+        }
+
+        // check use boxes
         List<ValueBox> useValueBoxes = stmt.getUseBoxes();
 
         for (ValueBox vb : useValueBoxes) {
             String siganiture = vb.getValue().toString();
 
             if (model.needCheckApiLevel() || model.needCheckSystemVersion()) {
-                return Strings.contains(siganiture,
+                return Strings.containsIgnoreCase(siganiture,
                         "android.os.Build.VERSION_CODES",
                         "android.os.Build.VERSION.SDK_INT",
                         "android.os.Build.VERSION.SDK",
@@ -218,11 +227,14 @@ public class Finder {
                         "os.Build.VERSION.SDK",
                         "Build.VERSION_CODES",
                         "Build.VERSION.SDK_INT",
-                        "Build.VERSION.SDK");
+                        "Build.VERSION.SDK",
+                        "VERSION_CODES",
+                        "VERSION.SDK_INT",
+                        "VERSION.SDK");
             }
 
             if (model.hasBadDevices()) {
-                return Strings.contains(siganiture,
+                return Strings.containsIgnoreCase(siganiture,
                         "android.os.Build.BOARD",
                         "android.os.Build.BRAND",
                         "android.os.Build.DEVICE",
@@ -234,7 +246,11 @@ public class Finder {
                         "Build.BOARD",
                         "Build.BRAND",
                         "Build.DEVICE",
-                        "Build.PRODUCT");
+                        "Build.PRODUCT",
+                        "BOARD",
+                        "BRAND",
+                        "DEVICE",
+                        "PRODUCT");
             }
         }
 
