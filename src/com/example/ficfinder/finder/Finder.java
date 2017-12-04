@@ -9,11 +9,9 @@ import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.tracker.Issue;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.Strings;
-import polyglot.ast.Assign;
 import soot.*;
 import soot.jimple.AssignStmt;
 import soot.jimple.IfStmt;
-import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
@@ -46,19 +44,9 @@ public class Finder {
     }
 
     private void setUp() {
-        G.reset();
+        soot.G.reset();
 
-        Options.v().set_process_dir(Collections.singletonList("test/example/out"));
-        Options.v().set_src_prec(Options.src_prec_class);
-        Options.v().set_output_format(Options.output_format_none);
-
-        Options.v().keep_line_number();
-        Options.v().set_prepend_classpath(true);
-        Options.v().set_whole_program(true);
-        Options.v().set_allow_phantom_refs(true);
-        Options.v().set_no_bodies_for_excluded(true);
-        Options.v().set_verbose(false);
-        Options.v().setPhaseOption("cg.spark", "on");
+        Options.v().parse(Env.OPTIONS);
 
         Scene.v().loadNecessaryClasses();
         Scene.v().loadBasicClasses();
@@ -206,11 +194,6 @@ public class Finder {
         //
         AssignStmt stmt = (AssignStmt) unit;
 
-        // trick
-        if (stmt.containsInvokeExpr()) {
-            return Strings.containsIgnoreCase(stmt.getInvokeExpr().getMethod().getSignature(), "compatible");
-        }
-
         // check use boxes
         List<ValueBox> useValueBoxes = stmt.getUseBoxes();
 
@@ -265,7 +248,7 @@ public class Finder {
      *  1. get the corresponding pdg, which describes the unit's method
      *  2. find the dependents of callerUnit
      *  3. find the nearest IfStmt of the caller unit
-     *  4. find the dependents of ifUnit(which defines the variable used in ifUnit)
+     *  4. find the dependents of IfStmt(which defines the variable used in IfStmt)
      *
      */
     private Set<Unit> runBackwardSlicingFor(Callsite callsite) {
@@ -284,6 +267,7 @@ public class Finder {
         List<Map.Entry<Integer, Unit>> kIfStmtNeightbors = findKNeighbors(unitsOfCaller, callerUnit);
         Iterator<Map.Entry<Integer, Unit>> iterator = kIfStmtNeightbors.iterator();
 
+        // 4. find the dependents of each IfStmt(which defines the variable used in IfStmt)
         while (iterator.hasNext()) {
             Map.Entry<Integer, Unit> entry = iterator.next();
             int ifIdx   = entry.getKey();
@@ -312,7 +296,6 @@ public class Finder {
                                 slice.add(assignStmt);
                                 // $vx = virtualinvoke method, then we need to add all stmt in method
                                 if (assignStmt.containsInvokeExpr()) {
-                                    SootMethod method = assignStmt.getInvokeExpr().getMethod();
                                     slice.addAll(assignStmt.getInvokeExpr().getMethod().getActiveBody().getUnits());
                                 }
                             }

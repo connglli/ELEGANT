@@ -14,6 +14,24 @@ import java.util.Set;
 public class Env {
 
     // Environment variable of FicFinder
+    public static final String[] OPTIONS = {
+            // general options
+            "-whole-program",
+
+            // input options
+            "-process-dir", "test/example/out", // TODO it should be a parameter passed to fic-finder
+            "-src-prec", "class",
+            "-prepend-classpath",
+            "-allow-phantom-refs",
+            "-no-bodies-for-excluded",
+            "-keep-line-number",
+
+            // output options
+            "-output-format", "none",
+
+            // process options
+            "-phase-option", "cg.spark", "enabled:true"
+    };
 
     // k neighbors, used in backward slicing
     public static final int ENV_K_NEIGHBORS = 5;

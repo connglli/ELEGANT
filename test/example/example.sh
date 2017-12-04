@@ -24,12 +24,17 @@ readonly JIMPLE_DIR
 gen() {
   java \
     -cp ${JAVA_CP} soot.Main \
-    -cp ${SOOT_CP} \
-    -pp \
-    -src-prec ${1} \
-    -f ${2} \
+    -whole-program \
+    -soot-classpath ${SOOT_CP} \
     -process-dir ${PROCESS_DIR} \
-    -d ${3} \
+    -src-prec ${1} \
+    -prepend-classpath \
+    -allow-phantom-refs \
+    -no-bodies-for-excluded \
+    -keep-line-number \
+    -output-format ${2} \
+    -output-dir ${3} \
+    -phase-option cg.spark enabled:true \
     ${ENTRY}
 }
 
