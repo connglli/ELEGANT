@@ -5,6 +5,8 @@ import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.tracker.PubSub;
 import com.example.ficfinder.tracker.PubSub.Issue;
 import com.example.ficfinder.tracker.Tracker;
+import soot.jimple.infoflow.android.SetupApplication;
+import soot.jimple.infoflow.android.manifest.ProcessManifest;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 
 import java.util.HashMap;
@@ -14,13 +16,15 @@ import java.util.Set;
 public class Env {
 
     // Environment variable of FicFinder
+
     public static final String[] OPTIONS = {
             // general options
             "-whole-program",
 
             // input options
-            "-process-dir", "test/example/out", // TODO it should be a parameter passed to fic-finder
-            "-src-prec", "class",
+            "-process-dir", "test/example.apk", // TODO it should be a parameter passed to fic-finder
+            "-src-prec", "apk",
+            "-android-jars", "assets/android-platforms",
             "-prepend-classpath",
             "-allow-phantom-refs",
             "-no-bodies-for-excluded",
@@ -42,7 +46,15 @@ public class Env {
 
     // Environments
 
+    public static final String ANDROID_PLATFORMS_PATH = "assets/android-platforms";
+
+    public static final String SOURCES_AND_SINKS_TEXT_PATH = "assets/SourcesAndSinks.txt";
+
     private PubSub tracker = Tracker.v();
+
+    private SetupApplication app;
+
+    private ProcessManifest manifest;
 
     private Set<ApiContext> models;
 
@@ -56,12 +68,28 @@ public class Env {
         return instance;
     }
 
+    public SetupApplication getApp() {
+        return app;
+    }
+
+    public ProcessManifest getManifest() {
+        return manifest;
+    }
+
     public Set<ApiContext> getModels() {
         return models;
     }
 
     public ProgramDependenceGraph getPDG(String method) {
         return pdgMapping.get(method);
+    }
+
+    public void setApp(SetupApplication app) {
+        this.app = app;
+    }
+
+    public void setManifest(ProcessManifest manifest) {
+        this.manifest = manifest;
     }
 
     public void setModels(Set<ApiContext> models) {

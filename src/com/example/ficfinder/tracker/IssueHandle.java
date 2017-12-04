@@ -22,7 +22,6 @@ public class IssueHandle implements PubSub.Handle {
         String badDevicesInfo = "";
 
         if (issueModel.hasBadDevices()) {
-            badDevicesInfo = "except devices: ";
             String[] badDevices = context.getBadDevices();
             for (int i = 0, l = badDevices.length; i < l - 1; i ++) {
                 badDevicesInfo += badDevices[i] + ", ";
@@ -30,10 +29,15 @@ public class IssueHandle implements PubSub.Handle {
             badDevicesInfo += badDevices[badDevices.length - 1];
         }
 
-        logger.c("API " + api.getSiganiture() + " should be used within the context: \n" +
-                    "\t android API level: [" + context.getMinApiLevel() + ", " + (context.getMaxApiLevel() == Context.DEFAULT_MAX_API_LEVEL ? "~" : context.getMaxApiLevel()) + "]\n" +
-                    "\t android system version: [" + context.getMinSystemVersion() + ", " + (context.getMaxSystemVersion() == context.DEFAULT_MAX_SYSTEM_VERSITON ? "~" : context.getMaxSystemVersion()) + "]\n" +
-                    "\t " + badDevicesInfo + "\n");
+        logger.c("INVALID use of API: " + api.getSiganiture());
+        logger.c("  IN file:   " + ((Issue) issue).getSrcFile());
+        logger.c("     method: " + ((Issue) issue).getMethod());
+        logger.c("     line:   " + ((Issue) issue).getStartLineNumber());
+        logger.c("     column: " + ((Issue) issue).getStartColumnNumber());
+        logger.c("  SHOULD be used within the context:");
+        logger.c("     android API level:  [ " + context.getMinApiLevel() + ", " + (context.getMaxApiLevel() == Context.DEFAULT_MAX_API_LEVEL ? "~" : context.getMaxApiLevel()) + " ]");
+        logger.c("     android OS version: [ " + context.getMinSystemVersion() + ", " + (context.getMaxSystemVersion() == context.DEFAULT_MAX_SYSTEM_VERSITON ? "~" : context.getMaxSystemVersion()) + " ]");
+        logger.c("     except:             [ " + badDevicesInfo + " ]");
     }
 
 }

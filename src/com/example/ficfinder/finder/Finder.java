@@ -46,15 +46,17 @@ public class Finder {
     private void setUp() {
         soot.G.reset();
 
+        // parse options
         Options.v().parse(Env.OPTIONS);
 
+        // load classes
         Scene.v().loadNecessaryClasses();
         Scene.v().loadBasicClasses();
 
-        // TODO: main class: this is hard coding
-        SootClass c = Scene.v().loadClassAndSupport("com.example.Example");
-        c.setApplicationClass();
-        Scene.v().setMainClass(c);
+        // fake main created by flowdroid
+        SootMethod entryPoint = Env.v().getApp().getEntryPointCreator().createDummyMain();
+        Options.v().set_main_class(entryPoint.getSignature());
+        Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
 
         // add a transform to generate PDG
         PackManager.v().getPack("jtp").add(new Transform("jtp.pdg_transform", new BodyTransformer() {
@@ -169,12 +171,10 @@ public class Finder {
      *
      */
     private boolean maybeFICable(ApiContext model, Callsite callsite) {
-        // TODO This is hard coding
-
         // compiled sdk version, used to check whether an api
         // is accessible or not
-        final int targetSdk = 23;
-        final int minSdk = 2;
+        final int targetSdk = Env.v().getManifest().targetSdkVersion();
+        final int minSdk = Env.v().getManifest().getMinSdkVersion();
 
         return model.hasBadDevices() || !model.matchApiLevel(targetSdk, minSdk);
     }
@@ -202,41 +202,17 @@ public class Finder {
 
             if ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
                 (Strings.containsIgnoreCase(siganiture,
-                        "android.os.Build.VERSION_CODES",
-                        "android.os.Build.VERSION.SDK_INT",
-                        "android.os.Build.VERSION.SDK",
-                        "os.Build.VERSION_CODES",
-                        "os.Build.VERSION.SDK_INT",
-                        "os.Build.VERSION.SDK",
-                        "Build.VERSION_CODES",
-                        "Build.VERSION.SDK_INT",
-                        "Build.VERSION.SDK",
-                        "VERSION_CODES",
-                        "VERSION.SDK_INT",
-                        "VERSION.SDK",
-                        "SDK_INT",
-                        "SDK"))) {
+                        "android.os.Build$VERSION: int SDK_INT",
+                        "android.os.Build$VERSION: java.lang.String SDK"))) {
                 return true;
             }
 
             if (model.hasBadDevices() &&
                 Strings.containsIgnoreCase(siganiture,
-                        "android.os.Build.BOARD",
-                        "android.os.Build.BRAND",
-                        "android.os.Build.DEVICE",
-                        "android.os.Build.PRODUCT",
-                        "os.Build.BOARD",
-                        "os.Build.BRAND",
-                        "os.Build.DEVICE",
-                        "os.Build.PRODUCT",
-                        "Build.BOARD",
-                        "Build.BRAND",
-                        "Build.DEVICE",
-                        "Build.PRODUCT",
-                        "BOARD",
-                        "BRAND",
-                        "DEVICE",
-                        "PRODUCT")) {
+                        "android.os.Build: java.lang.String BOARD",
+                        "android.os.Build: java.lang.String BRAND",
+                        "android.os.Build: java.lang.String DEVICE",
+                        "android.os.Build: java.lang.String PRODUCT")) {
                 return true;
             }
         }
