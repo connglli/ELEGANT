@@ -200,8 +200,8 @@ public class Finder {
         for (ValueBox vb : useValueBoxes) {
             String siganiture = vb.getValue().toString();
 
-            if (model.needCheckApiLevel() || model.needCheckSystemVersion()) {
-                return Strings.containsIgnoreCase(siganiture,
+            if ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
+                (Strings.containsIgnoreCase(siganiture,
                         "android.os.Build.VERSION_CODES",
                         "android.os.Build.VERSION.SDK_INT",
                         "android.os.Build.VERSION.SDK",
@@ -213,11 +213,14 @@ public class Finder {
                         "Build.VERSION.SDK",
                         "VERSION_CODES",
                         "VERSION.SDK_INT",
-                        "VERSION.SDK");
+                        "VERSION.SDK",
+                        "SDK_INT",
+                        "SDK"))) {
+                return true;
             }
 
-            if (model.hasBadDevices()) {
-                return Strings.containsIgnoreCase(siganiture,
+            if (model.hasBadDevices() &&
+                Strings.containsIgnoreCase(siganiture,
                         "android.os.Build.BOARD",
                         "android.os.Build.BRAND",
                         "android.os.Build.DEVICE",
@@ -233,7 +236,8 @@ public class Finder {
                         "BOARD",
                         "BRAND",
                         "DEVICE",
-                        "PRODUCT");
+                        "PRODUCT")) {
+                return true;
             }
         }
 
