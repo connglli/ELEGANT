@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CallSite {
+public class CallSites {
 
     private SootMethod caller;
 
@@ -15,19 +15,19 @@ public class CallSite {
 
     private Set<Unit> callSites = new HashSet<>();
 
-    public CallSite() { }
+    public CallSites() { }
 
-    public CallSite(SootMethod callee) {
+    public CallSites(SootMethod callee) {
         this();
         this.callee = callee;
     }
 
-    public CallSite(SootMethod callee, SootMethod caller) {
+    public CallSites(SootMethod callee, SootMethod caller) {
         this(callee);
         this.caller = caller;
     }
 
-    public CallSite(SootMethod callee, SootMethod caller, Unit ...callSites) {
+    public CallSites(SootMethod callee, SootMethod caller, Unit ...callSites) {
         this(callee, caller);
         this.callSites.addAll(Arrays.asList(callSites));
     }

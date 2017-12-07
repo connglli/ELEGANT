@@ -8,6 +8,7 @@ import com.example.ficfinder.models.api.ApiIface;
 import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.tracker.Issue;
 import com.example.ficfinder.utils.Logger;
+import com.example.ficfinder.utils.MultiTree;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
 import soot.jimple.AssignStmt;
@@ -83,40 +84,31 @@ public class Finder {
         logger.i("Core Algorithm goes here");
 
         Set<ApiContext> models = Env.v().getModels();
+        MultiTree<CallSites> callSitesTree;
 
         for (ApiContext model : models) {
-            Set<CallSite> callSites = this.computeCallSites(model);
-
-            // traverse callsites
-            for (CallSite callSite : callSites) {
-                if (!maybeFICable(model, callSite)) continue;
-                Set<Unit> slice = runBackwardSlicingFor(callSite);
-                boolean isIssueHandled = false;
-
-                for (Unit stmt : slice) {
-                    if (canHandleIssue(model, stmt)) {
-                        isIssueHandled = true;
-                        break;
-                    }
-                }
-
-                if (!isIssueHandled) {
-                    Env.v().emit(Issue.create(callSite, model));
-                }
+            if (!maybeFICable(model)) {
+                continue ;
             }
+
+            callSitesTree = this.computeCallSitesTree(model);
+
+            this.pruneCallSitesTree(callSitesTree, model);
+
+            this.searchFICPathOfCallSitesTree(callSitesTree);
         }
     }
 
     /**
-     * Compute all callsites of a specific api and its 0~k-indirect-caller
+     * Compute all call sites of a specific api and its 0~k-indirect-caller,
+     * In the call site tree, the child node saves all call sites of its parent node
      *
      */
-    private Set<CallSite> computeCallSites(ApiContext model) {
-        CallGraph callGraph = Scene.v().getCallGraph();
+    private MultiTree<CallSites> computeCallSitesTree(ApiContext model) {
         Scene scene = Scene.v();
 
         String type = model.getApi().getClass().toString().split(" ")[1];
-        Set<CallSite> callSites = new HashSet<>(128);
+        MultiTree<CallSites> callSites = null;
 
         try {
             // get call sites of the specific api
@@ -136,37 +128,10 @@ public class Finder {
                     ApiMethod  apiMethod  = (ApiMethod) model.getApi();
                     SootMethod sootMethod = scene.getMethod(apiMethod.getSiganiture());
 
-                    // iterate to get all call sites
-                    Set<SootMethod> callees = null, callers, temp;
-
-                    // 0-indirect-caller is its direct caller, we just set it
-                    callers = new HashSet<>(Arrays.asList(sootMethod));
-
-                    for (int i = 0; i <= Env.v().ENV_K_INDIRECT_CALLER; i ++) {
-                        if (callees == null) { temp = new HashSet<>(); }
-                        else { temp = callees; temp.clear(); }
-
-                        callees = callers;
-                        callers = temp;
-                        callers.clear();
-
-                        Iterator<Edge> edgeIterator;
-                        Edge edge;
-                        SootMethod caller;
-                        for (SootMethod callee : callees) {
-                            edgeIterator = callGraph.edgesInto(callee);
-                            while (edgeIterator.hasNext()) {
-                                edge = edgeIterator.next();
-                                caller = edge.src();
-
-                                if (!callers.contains(caller)) {
-                                    callers.add(caller);
-                                }
-
-                                callSites.add(new CallSite(caller, edge.srcUnit()));
-                            }
-                        }
-                    }
+                    // we mark the api as a caller, then we will use it to compute its children, thus its call sites
+                    CallSites root = new CallSites(null, sootMethod);
+                    // compute its children, thus its call sites
+                    callSites = new MultiTree<>(computeCallSites(new MultiTree.Node<>(root), 0));
 
                     break;
                 }
@@ -192,10 +157,88 @@ public class Finder {
     }
 
     /**
+     * computeCallSites computes all call sites of calleeNode, thus find all its children,
+     * this is not a pure function, because calleeNode will be added its children
+     *
+     */
+    private MultiTree.Node<CallSites> computeCallSites(MultiTree.Node<CallSites> calleeNode, int level) {
+        if (null == calleeNode || null == calleeNode.getData()) { return null; }
+
+        CallGraph callGraph = Scene.v().getCallGraph();
+        SootMethod callee = calleeNode.getData().getCaller();
+
+        // we firstly clarify all its call sites by the caller method
+        Iterator<Edge> edgeIterator = callGraph.edgesInto(callee);
+        Map<SootMethod, CallSites> callers = new HashMap<>(1);
+        while (edgeIterator.hasNext()) {
+            Edge edge = edgeIterator.next();
+            SootMethod caller = edge.src();
+            Unit callSite = edge.srcUnit();
+
+            if (callers.containsKey(caller)) {
+                callers.get(caller).addCallSite(callSite);
+            } else {
+                CallSites callSites = new CallSites(callee, caller, callSite);
+                callers.put(caller, callSites);
+            }
+        }
+
+        // then we create a node for each caller method, and compute its call sites if necessary
+        for (Map.Entry<SootMethod, CallSites> entry : callers.entrySet()) {
+            MultiTree.Node<CallSites> callSitesNode = new MultiTree.Node<>(entry.getValue());
+
+            // computing done until the K-INDIRECT-CALLER
+            if (level < Env.ENV_K_INDIRECT_CALLER) {
+                computeCallSites(callSitesNode, level + 1);
+            }
+
+            calleeNode.addChild(callSitesNode);
+        }
+
+        return calleeNode;
+    }
+
+    /**
+     * pruneCallSitesTree cuts all fixed call site
+     *
+     */
+    private void pruneCallSitesTree(MultiTree<CallSites> callSitesTree, ApiContext model) {
+        callSitesTree.accept(MultiTree.VisitManner.PREORDER, (MultiTree.Node<CallSites> n, Object result) -> {
+            SootMethod caller = n.getData().getCaller();
+            Set<Unit>  callSites = n.getData().getCallSites();
+            List<Unit> cutCallSites = new ArrayList<>();
+
+            for (Unit callSite : callSites) {
+                Set<Unit> slicing = runBackwardSlicingFor(caller, callSite);
+                for (Unit slice : slicing) {
+                    if (canHandleIssue(model, slice)) {
+                        cutCallSites.add(callSite);
+                        break;
+                    }
+                }
+            }
+
+            if (cutCallSites.size() == callSites.size()) {
+                callSites.clear();
+            } else {
+                for (Unit u : cutCallSites) {
+                    callSites.remove(u);
+                }
+            }
+        }, null);
+    }
+
+    private void searchFICPathOfCallSitesTree(MultiTree<CallSites> callSitesTree) {
+        //
+        // TODO find all pathes
+        //
+    }
+
+    /**
      * Check whether the call site is ficable i.e. may generate FIC issues
      *
      */
-    private boolean maybeFICable(ApiContext model, CallSite callSite) {
+    private boolean maybeFICable(ApiContext model) {
         // compiled sdk version, used to check whether an api
         // is accessible or not
         final int targetSdk = Env.v().getManifest().targetSdkVersion();
@@ -226,18 +269,18 @@ public class Finder {
             String siganiture = vb.getValue().toString();
 
             if ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
-                (Strings.containsIgnoreCase(siganiture,
-                        "android.os.Build$VERSION: int SDK_INT",
-                        "android.os.Build$VERSION: java.lang.String SDK"))) {
+                    (Strings.containsIgnoreCase(siganiture,
+                            "android.os.Build$VERSION: int SDK_INT",
+                            "android.os.Build$VERSION: java.lang.String SDK"))) {
                 return true;
             }
 
             if (model.hasBadDevices() &&
-                Strings.containsIgnoreCase(siganiture,
-                        "android.os.Build: java.lang.String BOARD",
-                        "android.os.Build: java.lang.String BRAND",
-                        "android.os.Build: java.lang.String DEVICE",
-                        "android.os.Build: java.lang.String PRODUCT")) {
+                    Strings.containsIgnoreCase(siganiture,
+                            "android.os.Build: java.lang.String BOARD",
+                            "android.os.Build: java.lang.String BRAND",
+                            "android.os.Build: java.lang.String DEVICE",
+                            "android.os.Build: java.lang.String PRODUCT")) {
                 return true;
             }
         }
@@ -256,13 +299,11 @@ public class Finder {
      *  4. find the dependents of IfStmt(which defines the variable used in IfStmt)
      *
      */
-    private Set<Unit> runBackwardSlicingFor(CallSite callSite) {
+    private Set<Unit> runBackwardSlicingFor(SootMethod caller, Unit callerUnit) {
         Set<Unit> slice = new HashSet<>(128);
 
         // 1. get the corresponding pdg, which describes the unit's method
-        SootMethod caller = callSite.getMethod();
         ProgramDependenceGraph pdg = Env.v().getPDG(caller.getSignature());
-        Unit callerUnit = callSite.getUnit();
 
         // 2. find the dependents of callerUnit
         if (pdg != null) {
