@@ -55,12 +55,16 @@ case ${1} in
     ;;
   "clr-class" )
     clr "*.class" ${CLASS_DIR}
+    rm -rf ${CLASS_DIR}
     ;;
   "clr-jimple" )
     clr "*.jimple" ${JIMPLE_DIR}
+    rm -rf ${JIMPLE_DIR_DIR}
     ;;
   "clr" )
     clr "*.jimple" ${JIMPLE_DIR}
     clr "*.class" ${CLASS_DIR}
+    rm -rf ${CLASS_DIR}
+    rm -rf ${JIMPLE_DIR_DIR}
     ;;
 esac
