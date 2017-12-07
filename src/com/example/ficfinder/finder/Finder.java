@@ -85,12 +85,12 @@ public class Finder {
         Set<ApiContext> models = Env.v().getModels();
 
         for (ApiContext model : models) {
-            Set<Callsite> callsites = this.computeCallsites(model);
+            Set<CallSite> callSites = this.computeCallSites(model);
 
             // traverse callsites
-            for (Callsite callsite : callsites) {
-                if (!maybeFICable(model, callsite)) continue;
-                Set<Unit> slice = runBackwardSlicingFor(callsite);
+            for (CallSite callSite : callSites) {
+                if (!maybeFICable(model, callSite)) continue;
+                Set<Unit> slice = runBackwardSlicingFor(callSite);
                 boolean isIssueHandled = false;
 
                 for (Unit stmt : slice) {
@@ -101,28 +101,28 @@ public class Finder {
                 }
 
                 if (!isIssueHandled) {
-                    Env.v().emit(Issue.create(callsite, model));
+                    Env.v().emit(Issue.create(callSite, model));
                 }
             }
         }
     }
 
     /**
-     * Compute all callsites of a specific api
+     * Compute all callsites of a specific api and its 0~k-indirect-caller
      *
      */
-    private Set<Callsite> computeCallsites(ApiContext model) {
+    private Set<CallSite> computeCallSites(ApiContext model) {
         CallGraph callGraph = Scene.v().getCallGraph();
         Scene scene = Scene.v();
 
         String type = model.getApi().getClass().toString().split(" ")[1];
-        Set<Callsite> callsites = new HashSet<>(128);
+        Set<CallSite> callSites = new HashSet<>(128);
 
         try {
-            // get callsites of the specific api
+            // get call sites of the specific api
             switch (type) {
                 case ApiField.TAG: {
-                    // TODO I have no idea how to get the callsite of a specific field
+                    // TODO I have no idea how to get the call site of a specific field
 
                     logger.w("Model of @field is not supported by now");
 
@@ -133,21 +133,46 @@ public class Finder {
                 }
 
                 case ApiMethod.TAG: {
-                    ApiMethod apiMethod = (ApiMethod) model.getApi();
+                    ApiMethod  apiMethod  = (ApiMethod) model.getApi();
                     SootMethod sootMethod = scene.getMethod(apiMethod.getSiganiture());
 
-                    Iterator<Edge> edges = callGraph.edgesInto(sootMethod);
+                    // iterate to get all call sites
+                    Set<SootMethod> callees = null, callers, temp;
 
-                    while (edges.hasNext()) {
-                        Edge edge = edges.next();
-                        callsites.add(new Callsite(edge.src(), edge.srcUnit()));
+                    // 0-indirect-caller is its direct caller, we just set it
+                    callers = new HashSet<>(Arrays.asList(sootMethod));
+
+                    for (int i = 0; i <= Env.v().ENV_K_INDIRECT_CALLER; i ++) {
+                        if (callees == null) { temp = new HashSet<>(); }
+                        else { temp = callees; temp.clear(); }
+
+                        callees = callers;
+                        callers = temp;
+                        callers.clear();
+
+                        Iterator<Edge> edgeIterator;
+                        Edge edge;
+                        SootMethod caller;
+                        for (SootMethod callee : callees) {
+                            edgeIterator = callGraph.edgesInto(callee);
+                            while (edgeIterator.hasNext()) {
+                                edge = edgeIterator.next();
+                                caller = edge.src();
+
+                                if (!callers.contains(caller)) {
+                                    callers.add(caller);
+                                }
+
+                                callSites.add(new CallSite(caller, edge.srcUnit()));
+                            }
+                        }
                     }
 
                     break;
                 }
 
                 case ApiIface.TAG: {
-                    // TODO I have no idea how to get the callsite of a specific interface
+                    // TODO I have no idea how to get the call site of a specific interface
 
                     logger.w("Model of @iface is not supported by now");
 
@@ -163,14 +188,14 @@ public class Finder {
             logger.w("Cannot find `" + model.getApi().getSiganiture() + "`");
         }
 
-        return callsites;
+        return callSites;
     }
 
     /**
-     * Check whether the callsite is ficable i.e. may generate FIC issues
+     * Check whether the call site is ficable i.e. may generate FIC issues
      *
      */
-    private boolean maybeFICable(ApiContext model, Callsite callsite) {
+    private boolean maybeFICable(ApiContext model, CallSite callSite) {
         // compiled sdk version, used to check whether an api
         // is accessible or not
         final int targetSdk = Env.v().getManifest().targetSdkVersion();
@@ -231,16 +256,18 @@ public class Finder {
      *  4. find the dependents of IfStmt(which defines the variable used in IfStmt)
      *
      */
-    private Set<Unit> runBackwardSlicingFor(Callsite callsite) {
+    private Set<Unit> runBackwardSlicingFor(CallSite callSite) {
         Set<Unit> slice = new HashSet<>(128);
 
         // 1. get the corresponding pdg, which describes the unit's method
-        SootMethod caller = callsite.getMethod();
+        SootMethod caller = callSite.getMethod();
         ProgramDependenceGraph pdg = Env.v().getPDG(caller.getSignature());
-        Unit callerUnit = callsite.getUnit();
+        Unit callerUnit = callSite.getUnit();
 
         // 2. find the dependents of callerUnit
-        slice.addAll(findDependentOf(pdg, callerUnit));
+        if (pdg != null) {
+            slice.addAll(findDependentOf(pdg, callerUnit));
+        }
 
         // 3. find the nearest K IfStmt of the caller unit
         List<Unit> unitsOfCaller = new ArrayList<>(caller.getActiveBody().getUnits());

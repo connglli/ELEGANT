@@ -40,6 +40,10 @@ public class Env {
     // k neighbors, used in backward slicing
     public static final int ENV_K_NEIGHBORS = 5;
 
+    // k-indirect-caller, used in call site computing
+    // 0-indirect-caller is its direct caller
+    public static final int ENV_K_INDIRECT_CALLER = 1;
+
     // Singleton
 
     private static Env instance;

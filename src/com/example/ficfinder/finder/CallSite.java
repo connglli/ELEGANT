@@ -3,13 +3,13 @@ package com.example.ficfinder.finder;
 import soot.SootMethod;
 import soot.Unit;
 
-public class Callsite {
+public class CallSite {
 
     private SootMethod method;
 
     private Unit unit;
 
-    public Callsite(SootMethod m, Unit u) {
+    public CallSite(SootMethod m, Unit u) {
         this.method = m;
         this.unit = u;
     }

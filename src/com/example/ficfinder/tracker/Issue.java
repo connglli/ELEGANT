@@ -1,9 +1,7 @@
 package com.example.ficfinder.tracker;
 
-import com.example.ficfinder.finder.Callsite;
+import com.example.ficfinder.finder.CallSite;
 import com.example.ficfinder.models.ApiContext;
-import com.example.ficfinder.models.api.Api;
-import com.example.ficfinder.models.context.Context;
 
 public class Issue implements PubSub.Issue {
 
@@ -17,16 +15,16 @@ public class Issue implements PubSub.Issue {
 
     private ApiContext issueModel;
 
-    public static Issue create(Callsite callsite, ApiContext issueModel) {
+    public static Issue create(CallSite callSite, ApiContext issueModel) {
 //        return new Issue(callsite.getMethod().getTag("SourceFileTag").getName(),
 //                callsite.getUnit().getJavaSourceStartLineNumber(),
 //                callsite.getUnit().getJavaSourceStartColumnNumber(),
 //                callsite.getMethod().getSignature(),
 //                issueModel);
         return new Issue("~",
-                callsite.getUnit().getJavaSourceStartLineNumber(),
-                callsite.getUnit().getJavaSourceStartColumnNumber(),
-                callsite.getMethod().getSignature(),
+                callSite.getUnit().getJavaSourceStartLineNumber(),
+                callSite.getUnit().getJavaSourceStartColumnNumber(),
+                callSite.getMethod().getSignature(),
                 issueModel);
     }
 
