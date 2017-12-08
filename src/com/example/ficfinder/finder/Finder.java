@@ -77,7 +77,19 @@ public class Finder {
     }
 
     /**
-     * Core Algorithm of fic-finder
+     * core is the core algorithm of fic-finder:
+     *
+     *   for each api-context model ac in model list do
+     *     if (model does not satisfy FIC conditions)
+     *       continue
+     *     fi
+     *
+     *     callSitesTree = createTree(model)                # creation
+     *     callSitesTree = pruneTree(callSitesTree, model)  # pruning
+     *     issues = searchTree(callSitesTree, model)        # searching
+     *
+     *     emit all issues
+     *   done
      *
      */
     private void core() {
@@ -85,23 +97,33 @@ public class Finder {
 
         Set<ApiContext> models = Env.v().getModels();
         MultiTree<CallSites> callSitesTree;
+        List<Issue> issues;
 
         for (ApiContext model : models) {
             if (!maybeFICable(model)) {
                 continue ;
             }
 
+            // compute call site tree using model and global environment
             callSitesTree = this.computeCallSitesTree(model);
 
+            // execute tree pruning(cut all fixed call sites)
             this.pruneCallSitesTree(callSitesTree, model);
 
-            this.searchFICPathOfCallSitesTree(callSitesTree);
+            // if all children of root is cut, then we know that, all issues are fixed
+            if (0 == callSitesTree.getRoot().getChildren().size()) { continue ; }
+
+            // search issues in call sites tree
+            issues = this.searchCallSitesTree(callSitesTree, model);
+
+            // emit the issues found
+            issues.forEach(i -> Env.v().emit(i));
         }
     }
 
     /**
-     * Compute all call sites of a specific api and its 0~k-indirect-caller,
-     * In the call site tree, the child node saves all call sites of its parent node
+     * computeCallSitesTree computes all call sites of a specific api and its 0~k-indirect-caller,
+     * in the call site tree, the child node saves all call sites of its parent node
      *
      */
     private MultiTree<CallSites> computeCallSitesTree(ApiContext model) {
@@ -128,7 +150,8 @@ public class Finder {
                     ApiMethod  apiMethod  = (ApiMethod) model.getApi();
                     SootMethod sootMethod = scene.getMethod(apiMethod.getSiganiture());
 
-                    // we mark the api as a caller, then we will use it to compute its children, thus its call sites
+                    // we create a virtual node as root, meaning that we mark the api as a caller,
+                    // then we will use it to compute its children, thus its call sites
                     CallSites root = new CallSites(null, sootMethod);
                     // compute its children, thus its call sites
                     callSites = new MultiTree<>(computeCallSites(new MultiTree.Node<>(root), 0));
@@ -199,43 +222,121 @@ public class Finder {
     }
 
     /**
-     * pruneCallSitesTree cuts all fixed call site
+     * pruneCallSitesTree cuts all fixed call site as well as the node
      *
      */
     private void pruneCallSitesTree(MultiTree<CallSites> callSitesTree, ApiContext model) {
-        callSitesTree.accept(MultiTree.VisitManner.PREORDER, (MultiTree.Node<CallSites> n, Object result) -> {
-            SootMethod caller = n.getData().getCaller();
-            Set<Unit>  callSites = n.getData().getCallSites();
-            List<Unit> cutCallSites = new ArrayList<>();
+        List<MultiTree.Node<CallSites>> nodesToBeCut = new ArrayList<>();
+        List<Unit> callSitesToBeCut = new ArrayList<>();
+        SootMethod caller;
+        Set<Unit>  callSites;
+
+        // 1. first cut all fixed call sites
+        MultiTree.Node<CallSites> root = callSitesTree.getRoot();
+        Queue<MultiTree.Node<CallSites>> queue = new LinkedList<>();
+
+        queue.offer(root);
+        while (!queue.isEmpty()) {
+            MultiTree.Node<CallSites> currentNode = queue.poll();
+            currentNode.getChildren().forEach(c -> queue.offer(c));
+
+            // skip the virtual node root, root is the model itself
+            if (currentNode.equals(root)) {
+                continue;
+            }
+
+            caller = currentNode.getData().getCaller();
+            callSites = currentNode.getData().getCallSites();
+            callSitesToBeCut.clear();
 
             for (Unit callSite : callSites) {
                 Set<Unit> slicing = runBackwardSlicingFor(caller, callSite);
                 for (Unit slice : slicing) {
                     if (canHandleIssue(model, slice)) {
-                        cutCallSites.add(callSite);
+                        callSitesToBeCut.add(callSite);
                         break;
                     }
                 }
             }
 
-            if (cutCallSites.size() == callSites.size()) {
+            if (callSitesToBeCut.size() == callSites.size()) {
                 callSites.clear();
+                nodesToBeCut.add(currentNode);
             } else {
-                for (Unit u : cutCallSites) {
-                    callSites.remove(u);
-                }
+                for (Unit u : callSitesToBeCut) { callSites.remove(u); }
             }
-        }, null);
-    }
+        }
 
-    private void searchFICPathOfCallSitesTree(MultiTree<CallSites> callSitesTree) {
-        //
-        // TODO find all pathes
-        //
+        // 2. cut all fixed node
+        for (MultiTree.Node<CallSites> n : nodesToBeCut) { callSitesTree.remove(n.getData()); }
     }
 
     /**
-     * Check whether the call site is ficable i.e. may generate FIC issues
+     * searchCallSitesTree searches all issues(the fic path)
+     *
+     */
+    private List<Issue> searchCallSitesTree(MultiTree<CallSites> callSitesTree, ApiContext model) {
+        if (callSitesTree.isEmpty()) { return new ArrayList<>(); }
+        return searchIssuesInCallSitesNode(callSitesTree.getRoot(), callSitesTree.getRoot(), model);
+    }
+
+    /**
+     * searchIssuesInCallSitesNode recursively searches issues of a call sites node
+     *
+     */
+    private List<Issue> searchIssuesInCallSitesNode(MultiTree.Node<CallSites> root,
+                                                    MultiTree.Node<CallSites> n,
+                                                    ApiContext model) {
+        final SootMethod caller = n.getData().getCaller();
+        final Set<Unit> callSites = n.getData().getCallSites();
+        final List<Issue.CallerPoint> callerPoints = new ArrayList<>();
+        final List<Issue> issues = new ArrayList<>();
+
+        callSites.forEach(u -> {
+            callerPoints.add(new Issue.CallerPoint(
+                    "~",
+                    u.getJavaSourceStartLineNumber(),
+                    u.getJavaSourceStartColumnNumber(),
+                    caller.getSignature()));
+        });
+
+
+        if (0 == n.getChildren().size()) {
+            callerPoints.forEach(si -> {
+                Issue issue = new Issue(model);
+                issue.addCallPoint(si);
+                issues.add(issue);
+            });
+        } else {
+            for (MultiTree.Node<CallSites> c : n.getChildren()) {
+                List<Issue> issuesOfC = searchIssuesInCallSitesNode(root, c, model);
+                if (n.equals(root)) {
+                    // root is a virtual node, just add all issues of its children
+                    issues.addAll(issuesOfC);
+                    issues.forEach(i -> i.setCalleePoint(new Issue.CalleePoint(caller.getSignature())));
+                } else {
+                    // new issues are issuesOfC X subIssues (Cartesian Product)
+                    callerPoints.forEach(si -> {
+                        List<Issue> cloneIssues = new ArrayList<> (issuesOfC.size());
+                        issuesOfC.forEach(i -> {
+                            try {
+                                cloneIssues.add((Issue) i.clone());
+                            } catch (CloneNotSupportedException e) {
+
+                            }
+                        });
+                        cloneIssues.forEach(ci -> ci.addCallPoint(si));
+                        issues.addAll(cloneIssues);
+                    });
+                }
+            }
+        }
+
+        return issues;
+    }
+
+    /**
+     * maybeFICable checks whether the call site is ficable i.e. may generate FIC issues
      *
      */
     private boolean maybeFICable(ApiContext model) {
@@ -248,7 +349,7 @@ public class Finder {
     }
 
     /**
-     * Check whether the stmt can handle the specific issue
+     * canHandleIssue checks whether the stmt can handle the specific issue
      *
      */
     public boolean canHandleIssue(ApiContext model, Unit unit) {
@@ -290,7 +391,7 @@ public class Finder {
     }
 
     /**
-     * Backward slicing algorithm.
+     * runBackwardSlicingFor runs backward slicing algorithm.
      *
      * we find the backward slicing of a unit by:
      *  1. get the corresponding pdg, which describes the unit's method
@@ -357,7 +458,7 @@ public class Finder {
     }
 
     /**
-     * Find K IfStmt neighbors
+     * findKNeighbors finds K IfStmt neighbors
      *
      */
     private List<Map.Entry<Integer, Unit>> findKNeighbors(List<Unit> unitsOfCaller, Unit callerUnit) {
@@ -382,7 +483,7 @@ public class Finder {
     }
 
     /**
-     * Find node of unit in pdg
+     * findNodeOf finds node of unit in pdg
      *
      */
     private PDGNode findNodeOf(ProgramDependenceGraph pdg, Unit unit) {
@@ -403,7 +504,7 @@ public class Finder {
     }
 
     /**
-     * Find dependent units of unit unit
+     * findDependentOf finds dependent units of unit unit
      *
      */
     private Set<Unit> findDependentOf(ProgramDependenceGraph pdg, Unit unit) {

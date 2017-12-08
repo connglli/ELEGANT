@@ -10,34 +10,40 @@ public class IssueHandle implements PubSub.Handle {
     private static final Logger logger = new Logger(IssueHandle.class);
 
     @Override
-    public void handle(PubSub.Issue issue) {
-        if (!(issue instanceof Issue)) {
+    public void handle(PubSub.Issue i) {
+        if (!(i instanceof Issue)) {
             return ;
         }
 
-        ApiContext issueModel = ((Issue) issue).getIssueModel();
-        Api api = issueModel.getApi();
-        Context context = issueModel.getContext();
+        Issue issue = (Issue) i;
+        ApiContext model = issue.getModel();
+        Api api = model.getApi();
+        Context context = model.getContext();
 
         String badDevicesInfo = "";
 
-        if (issueModel.hasBadDevices()) {
+        if (model.hasBadDevices()) {
             String[] badDevices = context.getBadDevices();
-            for (int i = 0, l = badDevices.length; i < l - 1; i ++) {
-                badDevicesInfo += badDevices[i] + ", ";
+            for (int idx = 0, l = badDevices.length; idx < l - 1; idx ++) {
+                badDevicesInfo += badDevices[idx] + ", ";
             }
             badDevicesInfo += badDevices[badDevices.length - 1];
         }
 
         logger.c("INVALID use of API: " + api.getSiganiture());
-        logger.c("  IN file:   " + ((Issue) issue).getSrcFile());
-        logger.c("     method: " + ((Issue) issue).getMethod());
-        logger.c("     line:   " + ((Issue) issue).getStartLineNumber());
-        logger.c("     column: " + ((Issue) issue).getStartColumnNumber());
+
+        logger.c("  PATH of method calling: [");
+        issue.getCallerPoints().forEach(p ->
+                logger.c("    " + p.getMethod() + "(" + p.getSrcFile() + ":" + p.getStartLineNumber() + ") ->")
+        );
+        logger.c("    " + issue.getCalleePoint().getMethod());
+        logger.c("  ]");
+
         logger.c("  SHOULD be used within the context:");
         logger.c("     android API level:  [ " + context.getMinApiLevel() + ", " + (context.getMaxApiLevel() == Context.DEFAULT_MAX_API_LEVEL ? "~" : context.getMaxApiLevel()) + " ]");
         logger.c("     android OS version: [ " + context.getMinSystemVersion() + ", " + (context.getMaxSystemVersion() == context.DEFAULT_MAX_SYSTEM_VERSITON ? "~" : context.getMaxSystemVersion()) + " ]");
         logger.c("     except:             [ " + badDevicesInfo + " ]");
+        logger.c("  Please check your api version or devices");
     }
 
 }

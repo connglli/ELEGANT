@@ -1,88 +1,137 @@
 package com.example.ficfinder.tracker;
 
-import com.example.ficfinder.finder.CallSites;
 import com.example.ficfinder.models.ApiContext;
 
-public class Issue implements PubSub.Issue {
+import java.util.LinkedList;
+import java.util.List;
 
-    private String srcFile;
+public class Issue implements PubSub.Issue, Cloneable {
 
-    private int startLineNumber;
+    public static class CalleePoint {
 
-    private int startColumnNumber;
+        private String method;
 
-    private String method;
+        public CalleePoint(String method) {
+            this.method = method;
+        }
 
-    private ApiContext issueModel;
+        public String getMethod() {
+            return method;
+        }
 
-    public static Issue create(CallSites callSites, ApiContext issueModel) {
+        public void setMethod(String method) {
+            this.method = method;
+        }
+
+    }
+
+    public static class CallerPoint {
+        private String srcFile;
+
+        private int startLineNumber;
+
+        private int startColumnNumber;
+
+        private String method;
+
+        public CallerPoint(String srcFile,
+                           int startLineNumber,
+                           int startColumnNumber,
+                           String method) {
 //        return new Issue(callsite.getMethod().getTag("SourceFileTag").getName(),
 //                callsite.getUnit().getJavaSourceStartLineNumber(),
 //                callsite.getUnit().getJavaSourceStartColumnNumber(),
 //                callsite.getMethod().getSignature(),
-//                issueModel);
+//                model);
 //        return new Issue("~",
 //                callSites.getUnit().getJavaSourceStartLineNumber(),
 //                callSites.getUnit().getJavaSourceStartColumnNumber(),
 //                callSites.getMethod().getSignature(),
-//                issueModel);
-        return new Issue("~",
-                0,
-                0,
-                "",
-                issueModel);
+//                model);
+            this.srcFile = srcFile;
+            this.startLineNumber = startLineNumber;
+            this.startColumnNumber = startColumnNumber;
+            this.method = method;
+        }
+
+        public String getSrcFile() {
+            return srcFile;
+        }
+
+        public void setSrcFile(String srcFile) {
+            this.srcFile = srcFile;
+        }
+
+        public int getStartLineNumber() {
+            return startLineNumber;
+        }
+
+        public void setStartLineNumber(int startLineNumber) {
+            this.startLineNumber = startLineNumber;
+        }
+
+        public int getStartColumnNumber() {
+            return startColumnNumber;
+        }
+
+        public void setStartColumnNumber(int startColumnNumber) {
+            this.startColumnNumber = startColumnNumber;
+        }
+
+        public String getMethod() {
+            return method;
+        }
+
+        public void setMethod(String method) {
+            this.method = method;
+        }
     }
 
-    public Issue(String srcFile,
-                 int startLineNumber,
-                 int startColumnNumber,
-                 String method,
-                 ApiContext issueModel) {
-        this.srcFile = srcFile;
-        this.startLineNumber = startLineNumber;
-        this.startColumnNumber = startColumnNumber;
-        this.method = method;
-        this.issueModel = issueModel;
+    private CalleePoint calleePoint;
+
+    private List<CallerPoint> callerPoints = new LinkedList<>();
+
+    private ApiContext model;
+
+    public Issue(ApiContext model) {
+        this.model = model;
     }
 
-    public String getSrcFile() {
-        return srcFile;
+    public List<CallerPoint> getCallerPoints() {
+        return callerPoints;
     }
 
-    public void setSrcFile(String srcFile) {
-        this.srcFile = srcFile;
+    public void setCallerPoints(List<CallerPoint> callerPoints) {
+        this.callerPoints = callerPoints;
     }
 
-    public int getStartLineNumber() {
-        return startLineNumber;
+    public void addCallPoint(CallerPoint s) {
+        this.callerPoints.add(s);
     }
 
-    public void setStartLineNumber(int startLineNumber) {
-        this.startLineNumber = startLineNumber;
+    public ApiContext getModel() {
+        return model;
     }
 
-    public int getStartColumnNumber() {
-        return startColumnNumber;
+    public void setModel(ApiContext model) {
+        this.model = model;
     }
 
-    public void setStartColumnNumber(int startColumnNumber) {
-        this.startColumnNumber = startColumnNumber;
+    public CalleePoint getCalleePoint() {
+        return calleePoint;
     }
 
-    public String getMethod() {
-        return method;
+    public void setCalleePoint(CalleePoint calleePoint) {
+        this.calleePoint = calleePoint;
     }
 
-    public void setMethod(String method) {
-        this.method = method;
-    }
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        Issue newIssue = (Issue) super.clone();
 
-    public ApiContext getIssueModel() {
-        return issueModel;
-    }
+        newIssue.callerPoints = (List<CallerPoint>) ((LinkedList)this.callerPoints).clone();
 
-    public void setIssueModel(ApiContext issueModel) {
-        this.issueModel = issueModel;
+        return newIssue;
     }
 
 }
