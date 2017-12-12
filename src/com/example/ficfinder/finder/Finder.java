@@ -11,8 +11,7 @@ import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.MultiTree;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
-import soot.jimple.AssignStmt;
-import soot.jimple.IfStmt;
+import soot.jimple.*;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.options.Options;
@@ -250,9 +249,10 @@ public class Finder {
             callSitesToBeCut.clear();
 
             for (Unit callSite : callSites) {
-                Set<Unit> slicing = runBackwardSlicingFor(caller, callSite);
-                for (Unit slice : slicing) {
-                    if (canHandleIssue(model, slice)) {
+                Map<Object, Set<Unit>> slicing = runBackwardSlicingFor(caller, callSite);
+                Set<Map.Entry<Object, Set<Unit>>> partialSlicings = slicing.entrySet();
+                for (Map.Entry<Object, Set<Unit>> paritialSlicing : partialSlicings) {
+                    if (canHandleIssue(model, paritialSlicing)) {
                         callSitesToBeCut.add(callSite);
                         break;
                     }
@@ -352,17 +352,108 @@ public class Finder {
      * canHandleIssue checks whether the stmt can handle the specific issue
      *
      */
-    public boolean canHandleIssue(ApiContext model, Unit unit) {
-        // we only parse Jimple
-        if (!(unit instanceof AssignStmt)) {
-            return false;
+    public boolean canHandleIssue(ApiContext model, Map.Entry<Object, Set<Unit>> paritialSlicing) {
+        Object    key     = paritialSlicing.getKey();
+        Set<Unit> slicing = paritialSlicing.getValue();
+
+        if (key instanceof IfStmt) {
+            // definitions of values used in if stmt
+            return canHandleIssue_IfStmt(model, (IfStmt) key, slicing);
         }
 
-        //
-        // TODO
-        //
-        AssignStmt stmt = (AssignStmt) unit;
+        // slicing of common callsites
+        return canHandleIssue_Common(model, slicing);
+    }
 
+    /**
+     * canHandleIssue_IfStmt checks the IfStmt s will fix the issue or not
+     *
+     */
+    private boolean canHandleIssue_IfStmt(ApiContext model, IfStmt s, Set<Unit> slicing) {
+        List<ValueBox> useBoxes = s.getCondition().getUseBoxes();
+        Value leftV  = useBoxes.get(0).getValue();
+        Value rightV = useBoxes.get(1).getValue();
+
+        if (leftV instanceof Constant && rightV instanceof Local) {
+            Constant c = (Constant) leftV;
+            Local    v = (Local) rightV;
+
+            if ((c instanceof IntConstant) &&
+                    (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
+                    canHandleIssue_IfStmt_VariableConstant01(model, (AssignStmt) slicing.iterator().next())) {
+                return true;
+            } else if ((c instanceof IntConstant) &&
+                        canHandleIssue_IfStmt_VariableConstantNot01(model, c, (AssignStmt) slicing.iterator().next())) {
+                return true;
+            }
+        } else if (rightV instanceof Constant && leftV instanceof Local) {
+            Local    v = (Local) leftV;
+            Constant c = (Constant) rightV;
+
+            if ((c instanceof IntConstant) &&
+                (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
+                    canHandleIssue_IfStmt_VariableConstant01(model, (AssignStmt) slicing.iterator().next())) {
+                return true;
+            } else if ((c instanceof IntConstant) &&
+                        canHandleIssue_IfStmt_VariableConstantNot01(model, c, (AssignStmt) slicing.iterator().next())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean canHandleIssue_IfStmt_VariableConstant01(ApiContext model, AssignStmt defStmt) {
+        if (defStmt.containsInvokeExpr()) {
+            InvokeExpr invokeExpr = defStmt.getInvokeExpr();
+            List<Value> values = invokeExpr.getArgs();
+            for (Value value : values) {
+                if (value instanceof Constant && canHandleIssue_IfStmt_ArgMatchApiContext(model, (Constant) value)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean canHandleIssue_IfStmt_VariableConstantNot01(ApiContext model, Constant constant, AssignStmt defStmt) {
+        if (canHandleIssue_IfStmt_ArgMatchApiContext(model, constant) &&
+            canHandleIssue_Common_UnitContainsSpecStrings(model, defStmt)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean canHandleIssue_IfStmt_ArgMatchApiContext(ApiContext model, Constant constant) {
+        if (constant instanceof IntConstant) {
+            int sdkInt = ((IntConstant) constant).value;
+            return model.getContext().getMinApiLevel() <= sdkInt && sdkInt <= model.getContext().getMaxApiLevel();
+        } else if (constant instanceof FloatConstant) {
+            float sysVer = ((FloatConstant) constant).value;
+            return model.getContext().getMinSystemVersion() <= sysVer && sysVer <= model.getContext().getMaxSystemVersion();
+        }
+
+        return false;
+    }
+
+    private boolean canHandleIssue_Common(ApiContext model, Set<Unit> slicing) {
+        for (Unit unit : slicing) {
+            // we only parse Jimple
+            if (!(unit instanceof AssignStmt)) {
+                return false;
+            }
+
+            if (canHandleIssue_Common_UnitContainsSpecStrings(model, (AssignStmt) unit)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean canHandleIssue_Common_UnitContainsSpecStrings(ApiContext model, AssignStmt stmt) {
         // check use boxes
         List<ValueBox> useValueBoxes = stmt.getUseBoxes();
 
@@ -386,7 +477,6 @@ public class Finder {
             }
         }
 
-
         return false;
     }
 
@@ -400,15 +490,17 @@ public class Finder {
      *  4. find the dependents of IfStmt(which defines the variable used in IfStmt)
      *
      */
-    private Set<Unit> runBackwardSlicingFor(SootMethod caller, Unit callerUnit) {
-        Set<Unit> slice = new HashSet<>(128);
+    private Map<Object, Set<Unit>> runBackwardSlicingFor(SootMethod caller, Unit callerUnit) {
+        Map<Object, Set<Unit>> slice = new HashMap<>();
 
         // 1. get the corresponding pdg, which describes the unit's method
         ProgramDependenceGraph pdg = Env.v().getPDG(caller.getSignature());
 
         // 2. find the dependents of callerUnit
         if (pdg != null) {
-            slice.addAll(findDependentOf(pdg, callerUnit));
+            slice.put(0, findDependentOf(pdg, callerUnit));
+        } else {
+            slice.put(0, new HashSet<>());
         }
 
         // 3. find the nearest K IfStmt of the caller unit
@@ -419,20 +511,30 @@ public class Finder {
         // 4. find the dependents of each IfStmt(which defines the variable used in IfStmt)
         while (iterator.hasNext()) {
             Map.Entry<Integer, Unit> entry = iterator.next();
-            int ifIdx   = entry.getKey();
+            int  ifIdx  = entry.getKey();
             Unit ifUnit = entry.getValue();
 
             if (ifUnit != null) {
                 IfStmt ifStmt = (IfStmt) ifUnit;
-                // get use boxed, e.g. [$v1, $v2] of `if $v1 > $v2 goto label 0`
-                Set<Value> useValuesOfIfUnit = new HashSet<>(2);
-                for (ValueBox vb : ifStmt.getCondition().getUseBoxes()) {
-                    Value v = vb.getValue();
-                    // we only save Locals
-                    if (v instanceof Local) {
-                        useValuesOfIfUnit.add(vb.getValue());
-                    }
+                slice.put(ifStmt, new HashSet<>());
+                // get use boxes, e.g. [$v1, $v2] of `if $v1 > $v2 goto label 0`
+                // we assume here that, an IfStmt will use only two values
+                Value leftV  = null;
+                Value rightV = null;
+
+                try {
+                    leftV = ifStmt.getCondition().getUseBoxes().get(0).getValue();
+                } catch (Exception e) {
+                    leftV = null;
                 }
+
+                try {
+                    rightV = ifStmt.getCondition().getUseBoxes().get(1).getValue();
+                } catch (Exception e) {
+                    rightV = null;
+                }
+
+                // traverse to find the definition of them
                 for (int i = ifIdx - 1; i >= 0; i --) {
                     Unit u = unitsOfCaller.get(i);
                     // $vx = ...
@@ -441,11 +543,11 @@ public class Finder {
                         List<ValueBox> defBoxesOfAssignUnit = assignStmt.getDefBoxes();
                         // check whether $vx in useBoxesOfIfUnit, if yes, then add it to slice
                         for (ValueBox vb : defBoxesOfAssignUnit) {
-                            if (useValuesOfIfUnit.contains(vb.getValue())) {
-                                slice.add(assignStmt);
-                                // $vx = virtualinvoke method, then we need to add all stmt in method
-                                if (assignStmt.containsInvokeExpr()) {
-                                    slice.addAll(assignStmt.getInvokeExpr().getMethod().getActiveBody().getUnits());
+                            if (vb.getValue() instanceof Local &&
+                                (vb.getValue().equals(leftV) || vb.getValue().equals(rightV))) {
+                                slice.get(ifStmt).add(assignStmt);
+                                if (((AssignStmt) u).containsInvokeExpr()) {
+                                    slice.get(0).addAll(((AssignStmt) u).getInvokeExpr().getMethod().getActiveBody().getUnits());
                                 }
                             }
                         }
