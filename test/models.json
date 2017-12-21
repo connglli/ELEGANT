@@ -14,21 +14,5 @@
     "context": {
       "min_api_level": 5
     }
-  },
-  {
-    "api": {
-      "@type": "method",
-      "pkg": "android.app",
-      "iface": "Activity",
-      "method": "getActionBar",
-      "ret": {
-        "pkg": "android.app",
-        "iface": "ActionBar"
-      },
-      "paramList": []
-    },
-    "context": {
-      "min_api_level": 11
-    }
   }
 ]

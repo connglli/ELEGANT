@@ -98,7 +98,7 @@ public class Configs {
     private void parseApk(@NotNull String apkPath) {
         try {
             if (!apkPath.endsWith(".apk")) {
-                throw new RuntimeException("File " + apkPath + " may not be an legal apk file");
+                throw new RuntimeException("File " + apkPath + " may not be a legal apk file");
             }
 
             ProcessManifest manifest = new ProcessManifest(apkPath);
@@ -111,22 +111,14 @@ public class Configs {
             try {
                 app.calculateSourcesSinksEntrypoints(Env.SOURCES_AND_SINKS_TEXT_PATH);
             } catch (Exception e) {
-                throw new RuntimeException("Sources and sinks file " + Env.SOURCES_AND_SINKS_TEXT_PATH + " is not available");
+                throw new RuntimeException(e.getMessage());
             }
             G.reset();
 
             // set environment
             Env.v().setApp(app);
         } catch (Exception e) {
-            throw new RuntimeException("File " + apkPath + " does not exist");
-        }
-
-        try {
-            if (!apkPath.endsWith(".apk")) {
-                throw new RuntimeException("File " + apkPath + " may not be an legal apk file");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("File " + apkPath + " does not exist");
+            throw new RuntimeException(e.getMessage());
         }
     }
 

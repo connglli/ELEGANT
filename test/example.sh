@@ -1,21 +1,21 @@
 #! /bin/sh
 
-JAVA_CP=../../lib/soot-trunk.jar
+JAVA_CP=../lib/soot-trunk.jar
 readonly JAVA_CP
 
-SOOT_CP=./out
+SOOT_CP=./example/out
 readonly SOOT_CP
 
 ENTRY=com.example.fictest.MainActivity
 readonly ENTRY
 
-PROCESS_DIR=./out
+PROCESS_DIR=./example/out
 readonly PROCESS_DIR
 
-CLASS_DIR=./out
+CLASS_DIR=./example/out
 readonly CLASS_DIR
 
-JIMPLE_DIR=./output
+JIMPLE_DIR=./example/output
 readonly JIMPLE_DIR
 
 # $1 is input format

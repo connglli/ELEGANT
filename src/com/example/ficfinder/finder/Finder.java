@@ -92,8 +92,6 @@ public class Finder {
      *
      */
     private void core() {
-        logger.i("Core Algorithm goes here");
-
         Set<ApiContext> models = Env.v().getModels();
         MultiTree<CallSites> callSitesTree;
         List<Issue> issues;
@@ -105,6 +103,8 @@ public class Finder {
 
             // compute call site tree using model and global environment
             callSitesTree = this.computeCallSitesTree(model);
+
+            if (null == callSitesTree) { continue; }
 
             // execute tree pruning(cut all fixed call sites)
             this.pruneCallSitesTree(callSitesTree, model);
@@ -173,6 +173,7 @@ public class Finder {
             }
         } catch (Exception e) {
             logger.w("Cannot find `" + model.getApi().getSiganiture() + "`");
+            callSites = null;
         }
 
         return callSites;
@@ -547,7 +548,11 @@ public class Finder {
                                 (vb.getValue().equals(leftV) || vb.getValue().equals(rightV))) {
                                 slice.get(ifStmt).add(assignStmt);
                                 if (((AssignStmt) u).containsInvokeExpr()) {
-                                    slice.get(0).addAll(((AssignStmt) u).getInvokeExpr().getMethod().getActiveBody().getUnits());
+                                    try {
+                                        slice.get(0).addAll(((AssignStmt) u).getInvokeExpr().getMethod().getActiveBody().getUnits());
+                                    } catch (Exception e) {
+                                        // do nothing, for those without an active body
+                                    }
                                 }
                             }
                         }

@@ -77,3 +77,4 @@ fabric.properties
 
 # self project
 assets/android-platforms/**/android.jar
+test/**/*.apk
