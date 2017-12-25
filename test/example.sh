@@ -66,5 +66,7 @@ case ${1} in
     clr "*.class" ${CLASS_DIR}
     rm -rf ${CLASS_DIR}
     rm -rf ${JIMPLE_DIR_DIR}
+    rm example.apk
+    rm models.json
     ;;
 esac

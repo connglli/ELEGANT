@@ -7,6 +7,7 @@ import com.example.ficfinder.models.api.ApiField;
 import com.example.ficfinder.models.api.ApiIface;
 import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.tracker.Issue;
+import com.example.ficfinder.utils.CallGraphViewer;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.MultiTree;
 import com.example.ficfinder.utils.Strings;
@@ -73,6 +74,8 @@ public class Finder {
         }));
 
         PackManager.v().runPacks();
+
+        new CallGraphViewer(Scene.v().getCallGraph(), entryPoint).export("cg", "/Users/apple/Desktop");
     }
 
     /**

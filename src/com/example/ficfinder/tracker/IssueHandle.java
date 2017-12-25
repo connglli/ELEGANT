@@ -30,20 +30,20 @@ public class IssueHandle implements PubSub.Handle {
             badDevicesInfo += badDevices[badDevices.length - 1];
         }
 
-        logger.c("INVALID use of API: " + api.getSiganiture());
+        logger.w("INVALID use of API: " + api.getSiganiture());
 
-        logger.c("  PATH of method calling: [");
+        logger.w("  PATH of method calling: [");
         issue.getCallerPoints().forEach(p ->
-                logger.c("    " + p.getMethod() + "(" + p.getSrcFile() + ":" + p.getStartLineNumber() + ") ->")
+                logger.w("    " + p.getMethod() + "(" + p.getSrcFile() + ":" + p.getStartLineNumber() + ") ->")
         );
-        logger.c("    " + issue.getCalleePoint().getMethod());
-        logger.c("  ]");
+        logger.w("    " + issue.getCalleePoint().getMethod());
+        logger.w("  ]");
 
-        logger.c("  SHOULD be used within the context:");
-        logger.c("     android API level:  [ " + context.getMinApiLevel() + ", " + (context.getMaxApiLevel() == Context.DEFAULT_MAX_API_LEVEL ? "~" : context.getMaxApiLevel()) + " ]");
-        logger.c("     android OS version: [ " + context.getMinSystemVersion() + ", " + (context.getMaxSystemVersion() == context.DEFAULT_MAX_SYSTEM_VERSITON ? "~" : context.getMaxSystemVersion()) + " ]");
-        logger.c("     except:             [ " + badDevicesInfo + " ]");
-        logger.c("  Please check your api version or devices\n");
+        logger.w("  SHOULD be used within the context:");
+        logger.w("     android API level:  [ " + context.getMinApiLevel() + ", " + (context.getMaxApiLevel() == Context.DEFAULT_MAX_API_LEVEL ? "~" : context.getMaxApiLevel()) + " ]");
+        logger.w("     android OS version: [ " + context.getMinSystemVersion() + ", " + (context.getMaxSystemVersion() == context.DEFAULT_MAX_SYSTEM_VERSITON ? "~" : context.getMaxSystemVersion()) + " ]");
+        logger.w("     except:             [ " + badDevicesInfo + " ]");
+        logger.w("  Please check your api version or devices\n");
     }
 
 }
