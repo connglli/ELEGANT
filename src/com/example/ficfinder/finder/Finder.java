@@ -86,9 +86,9 @@ public class Finder {
      *       continue
      *     fi
      *
-     *     callSitesTree = createTree(model)                # creation
-     *     callSitesTree = pruneTree(callSitesTree, model)  # pruning
-     *     issues = searchTree(callSitesTree, model)        # searching
+     *     callSitesTree = create_Tree(model)                # creation
+     *     callSitesTree = prune_Tree(callSitesTree, model)  # pruning
+     *     issues = getPathes_Tree(callSitesTree, model)     # generating
      *
      *     emit all issues
      *   done
@@ -125,7 +125,19 @@ public class Finder {
 
     /**
      * computeCallSitesTree computes all call sites of a specific api and its 0~k-indirect-caller,
-     * in the call site tree, the child node saves all call sites of its parent node
+     * in the call site tree, the child node saves all call sites of its parent node:
+     *
+     *   function create_Tree(callgraph, api) {
+     *     root = new Root({ caller: api })
+     *
+     *     clarify all call sites of api by every call site's method
+     *     add all methods to root as root.method
+     *
+     *     foreach method m in root.methods do
+     *       childnode = create_Tree(callgraph, m)
+     *       append childnode to root as a child node
+     *     done
+     *   done
      *
      */
     private MultiTree<CallSites> computeCallSitesTree(ApiContext model) {
@@ -225,7 +237,36 @@ public class Finder {
     }
 
     /**
-     * pruneCallSitesTree cuts all fixed call site as well as the node
+     * pruneCallSitesTree cuts all fixed call site as well as the node:
+     *
+     *   function prune_Tree(t)
+     *     queue = Queue(t.root)
+     *
+     *     # we use BFS to traverse the tree
+     *     while queue is not empty do
+     *       node = queue.deque()
+     *       foreach child node c in node.getChildren() do
+     *         queue.enque(c)
+     *       done
+     *
+     *       foreach call site cs in node.getCallSites() do
+     *         slicing = runBackgroundSlicing(cs)
+     *         foreach slice s in slicing do
+     *           if (s can fix issue) then
+     *             delete cs in node
+     *             break
+     *           fi
+     *         done
+     *       done
+     *
+     *       if node.getCallSites() == empty then
+     *         while node.getParent() != t.root do
+     *           node = node.getParent()
+     *         done
+     *         delete node in t
+     *       fi
+     *     done
+     *   done
      *
      */
     private void pruneCallSitesTree(MultiTree<CallSites> callSitesTree, ApiContext model) {
@@ -282,6 +323,17 @@ public class Finder {
 
     /**
      * searchCallSitesTree searches all issues(the fic path)
+     *
+     *   function genPathes_Tree(t)
+     *     pathes = []
+     *
+     *     foreach child node n in t.getChlidren do
+     *       genPathes_Tree(n)
+     *         .map(p, pathes.add(p.clone().append(t.caller)))
+     *     done
+     *
+     *     return pathes
+     *   done
      *
      */
     private List<Issue> searchCallSitesTree(MultiTree<CallSites> callSitesTree, ApiContext model) {
