@@ -11,6 +11,8 @@ import com.example.ficfinder.utils.CallGraphViewer;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.MultiTree;
 import com.example.ficfinder.utils.Strings;
+import com.sun.tools.javac.util.Pair;
+import jas.Method;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.toolkits.callgraph.CallGraph;
@@ -75,7 +77,8 @@ public class Finder {
 
         PackManager.v().runPacks();
 
-        new CallGraphViewer(Scene.v().getCallGraph(), entryPoint).export("cg", "/Users/apple/Desktop");
+        // uncomment to generate a call graph viewer
+        // new CallGraphViewer(Scene.v().getCallGraph(), entryPoint).export("cg", "/Users/apple/Desktop");
     }
 
     /**
@@ -99,6 +102,7 @@ public class Finder {
         MultiTree<CallSites> callSitesTree;
         List<Issue> issues;
 
+        // vanilla checking
         for (ApiContext model : models) {
             if (!maybeFICable(model)) {
                 continue ;
@@ -121,6 +125,10 @@ public class Finder {
             // emit the issues found
             issues.forEach(i -> Env.v().emit(i));
         }
+
+        // reflection checking
+        AbstractFinder reflectionFinder = new ReflectionFinder(models);
+        reflectionFinder.report();
     }
 
     /**
@@ -155,14 +163,14 @@ public class Finder {
                     logger.w("Model of @field is not supported by now");
 
                     // ApiField apiField = (ApiField) model.getApi();
-                    // SootField sootField = scene.getField(apiField.getSiganiture());
+                    // SootField sootField = scene.getField(apiField.getSignature());
 
                     break;
                 }
 
                 case ApiMethod.TAG: {
                     ApiMethod  apiMethod  = (ApiMethod) model.getApi();
-                    SootMethod sootMethod = scene.getMethod(apiMethod.getSiganiture());
+                    SootMethod sootMethod = scene.getMethod(apiMethod.getSignature());
 
                     // we create a virtual node as root, meaning that we mark the api as a caller,
                     // then we will use it to compute its children, thus its call sites
@@ -179,7 +187,7 @@ public class Finder {
                     logger.w("Model of @iface is not supported by now");
 
                     // ApiIface apiIface = (ApiIface) model.getApi();
-                    // SootClass sootIface = scene.getSootClass(apiIface.getSiganiture());
+                    // SootClass sootIface = scene.getSootClass(apiIface.getSignature());
 
                     break;
                 }
@@ -187,7 +195,7 @@ public class Finder {
                 default: throw new RuntimeException("Invalid api type: " + type);
             }
         } catch (Exception e) {
-            logger.w("Cannot find `" + model.getApi().getSiganiture() + "`");
+            logger.w("Cannot find `" + model.getApi().getSignature() + "`");
             callSites = null;
         }
 
@@ -383,7 +391,7 @@ public class Finder {
                             try {
                                 cloneIssues.add((Issue) i.clone());
                             } catch (CloneNotSupportedException e) {
-
+                                // do nothing here
                             }
                         });
                         cloneIssues.forEach(ci -> ci.addCallPoint(si));

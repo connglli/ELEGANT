@@ -20,7 +20,7 @@ public class ApiIface extends Api {
     }
 
     @Override
-    public String getSiganiture() {
+    public String getSignature() {
         // TODO maynot be compatible with soot
         return "<" + this.pkg + "." + this.iface + ">";
     }

@@ -50,7 +50,7 @@ public abstract class Api implements Serializable {
         this.pkg = pkg;
     }
 
-    public abstract String getSiganiture();
+    public abstract String getSignature();
 
     @Override
     public boolean equals(Object obj) {
@@ -58,11 +58,11 @@ public abstract class Api implements Serializable {
             return false;
         }
 
-        return this.getSiganiture().equals(((Api) obj).getSiganiture());
+        return this.getSignature().equals(((Api) obj).getSignature());
     }
 
     @Override
     public int hashCode() {
-        return this.getSiganiture().hashCode();
+        return this.getSignature().hashCode();
     }
 }

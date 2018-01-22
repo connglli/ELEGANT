@@ -30,9 +30,9 @@ public class IssueHandle implements PubSub.Handle {
             badDevicesInfo += badDevices[badDevices.length - 1];
         }
 
-        logger.w("INVALID use of API: " + api.getSiganiture());
+        logger.w("INVALID use of API: " + api.getSignature());
 
-        logger.w("  PATH of method calling: [");
+        logger.w("  CHAIN of invoked method: [");
         issue.getCallerPoints().forEach(p ->
                 logger.w("    " + p.getMethod() + "(" + p.getSrcFile() + ":" + p.getStartLineNumber() + ") ->")
         );
