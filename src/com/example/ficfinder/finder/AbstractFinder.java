@@ -37,7 +37,14 @@ public abstract class AbstractFinder {
     public abstract void generate(ApiContext model);
 
     /**
-     * find will find and report all validated bugs
+     * find will find and report all validated bugs in the routine:
+     *
+     * algorithm:
+     *   for each model m in model list do
+     *     detection:  detect all potential bugs
+     *     validation: validate all detected potential bugs
+     *     generation: generate issues for all validated bugs
+     *   done
      *
      */
     public void report() {

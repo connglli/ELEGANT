@@ -4,6 +4,7 @@ import com.example.ficfinder.Env;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.tracker.Issue;
+import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.Soots;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
@@ -16,16 +17,19 @@ import java.util.*;
 
 public class ReflectionFinder extends AbstractFinder {
 
+    private Logger logger = new Logger(ReflectionFinder.class);
+
+    // REFLECTION_GET_METHOD_SIGNATURE is the soot signature of class.getMethod
     private static String REFLECTION_GET_METHOD_SIGNATURE =
             "<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>";
 
     // edges stores all edges calling into REFLECTION_GET_METHOD_SIGNATURE
     private Set<Edge> edges;
 
-    // detectedEdges stores detected edges in the detect phase, which will be processed in
+    // detectedEdges stores detected edges in the detection phase, which will be processed in
     private Set<Edge> detectedEdges;
 
-    // validatedEdges stores all validated edges in validate phase, that will be emitted in generate phase
+    // validatedEdges stores all validated edges in validation phase, that will be emitted in generation phase
     private Set<Edge> validatedEdges;
 
     public ReflectionFinder(Set<ApiContext> models) {
@@ -83,7 +87,7 @@ public class ReflectionFinder extends AbstractFinder {
         // remove all edges that is detected
         this.edges.removeAll(detectedEdges);
 
-        return detectedEdges.size() != 0;
+        return 0 != detectedEdges.size();
     }
 
     @Override
@@ -133,7 +137,7 @@ public class ReflectionFinder extends AbstractFinder {
             }
         }
 
-        return validatedEdges.size() != 0;
+        return 0 != validatedEdges.size();
     }
 
     @Override
