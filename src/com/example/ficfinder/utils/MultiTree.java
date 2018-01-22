@@ -10,8 +10,8 @@ public class MultiTree<D> {
 
     public static class Node<D> {
 
-        private D data = null;
-        private Node<D> parent = null;
+        private D             data     = null;
+        private Node<D>       parent   = null;
         private List<Node<D>> children = new ArrayList<>();
 
         public Node() { }
@@ -57,10 +57,13 @@ public class MultiTree<D> {
 
     protected Node<D> root;
 
+    protected int size = 0;
+
     public MultiTree() { }
 
     public MultiTree(Node<D> root) {
         this.root = root;
+        this.size = -1;
     }
 
     public Node<D> getRoot() {
@@ -69,30 +72,36 @@ public class MultiTree<D> {
 
     public void setRoot(Node<D> root) {
         this.root = root;
+        this.size = -1;
     }
 
     public boolean isEmpty() {
         return null == this.root;
     }
 
-    public int size() {
-        if (this.isEmpty()) {
-            return 0;
+    public int getSize() {
+        if (-1 != this.size) {
+            return this.size;
         }
 
-        int size = 0;
+        if (this.isEmpty()) {
+            this.size = 0;
+            return this.size;
+        }
+
+        this.size = 0;
         Queue<Node<D>> queue = new LinkedList<>();
 
         queue.offer(this.root);
         while (!queue.isEmpty()) {
             Node<D> n = queue.poll();
 
-            size ++;
+            this.size ++;
 
             n.getChildren().forEach(c -> queue.offer(c));
         }
 
-        return size;
+        return this.size;
     }
 
     public Node<D> find(D data) {
@@ -127,6 +136,9 @@ public class MultiTree<D> {
         } else {
             n.getParent().getChildren().remove(n);
         }
+
+        // recaculate tree size
+        this.size = -1;
 
         return true;
     }

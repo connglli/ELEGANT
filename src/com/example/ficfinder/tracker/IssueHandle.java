@@ -40,9 +40,9 @@ public class IssueHandle implements PubSub.Handle {
         logger.w("  ]");
 
         logger.w("  SHOULD be used within the context:");
-        logger.w("     android API level:  [ " + context.getMinApiLevel() + ", " + (context.getMaxApiLevel() == Context.DEFAULT_MAX_API_LEVEL ? "~" : context.getMaxApiLevel()) + " ]");
-        logger.w("     android OS version: [ " + context.getMinSystemVersion() + ", " + (context.getMaxSystemVersion() == context.DEFAULT_MAX_SYSTEM_VERSITON ? "~" : context.getMaxSystemVersion()) + " ]");
-        logger.w("     except:             [ " + badDevicesInfo + " ]");
+        logger.w("     android API level:  [ " + context.getMinApiLevel() + ", " + context.getMaxApiLevel() + " ]");
+//        logger.w("     android OS version: [ " + context.getMinSystemVersion() + ", " + context.getMaxSystemVersion() + " ]");
+        logger.w("     except devices:     [ " + badDevicesInfo + " ]");
         logger.w("  Please check your api version or devices\n");
     }
 

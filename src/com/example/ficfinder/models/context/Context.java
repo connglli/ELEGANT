@@ -8,7 +8,7 @@ public class Context implements Serializable {
 
     public static final int DEFAULT_MIN_API_LEVEL = 1;
 
-    public static final int DEFAULT_MAX_API_LEVEL = Integer.MAX_VALUE;
+    public static final int DEFAULT_MAX_API_LEVEL = 27; // TODO hard code, need to be extracted to a configuration file
 
     public static final double DEFAULT_MIN_SYSTEM_VERSION = 1;
 

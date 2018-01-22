@@ -272,7 +272,12 @@ public class Finder {
         }
 
         // 2. cut all fixed node
-        for (MultiTree.Node<CallSites> n : nodesToBeCut) { callSitesTree.remove(n.getData()); }
+        for (MultiTree.Node<CallSites> n : nodesToBeCut) {
+            while (!n.getParent().equals(callSitesTree.getRoot())) {
+                n = n.getParent();
+            }
+            callSitesTree.remove(n.getData());
+        }
     }
 
     /**
@@ -458,27 +463,42 @@ public class Finder {
     }
 
     private boolean canHandleIssue_Common_UnitContainsSpecStrings(ApiContext model, AssignStmt stmt) {
+        // if the state contains a method, we assume that most develops won't check api just using 1+ method invoking.
+        if (stmt.containsInvokeExpr()) {
+            if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
+                    model, stmt.getInvokeExpr().getMethod().getActiveBody().toString())) {
+                return true;
+            }
+        }
+
         // check use boxes
         List<ValueBox> useValueBoxes = stmt.getUseBoxes();
 
         for (ValueBox vb : useValueBoxes) {
-            String siganiture = vb.getValue().toString();
-
-            if ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
-                    (Strings.containsIgnoreCase(siganiture,
-                            "android.os.Build$VERSION: int SDK_INT",
-                            "android.os.Build$VERSION: java.lang.String SDK"))) {
+            if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
+                    model, vb.getValue().toString())) {
                 return true;
             }
+        }
 
-            if (model.hasBadDevices() &&
-                    Strings.containsIgnoreCase(siganiture,
-                            "android.os.Build: java.lang.String BOARD",
-                            "android.os.Build: java.lang.String BRAND",
-                            "android.os.Build: java.lang.String DEVICE",
-                            "android.os.Build: java.lang.String PRODUCT")) {
-                return true;
-            }
+        return false;
+    }
+
+    private boolean canHandleIssue_Common_UnitContainsSpecStrings_Checking(ApiContext model, String s) {
+        if ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
+                (Strings.containsIgnoreCase(s,
+                        "android.os.Build$VERSION: int SDK_INT",
+                        "android.os.Build$VERSION: java.lang.String SDK"))) {
+            return true;
+        }
+
+        if (model.hasBadDevices() &&
+                Strings.containsIgnoreCase(s,
+                        "android.os.Build: java.lang.String BOARD",
+                        "android.os.Build: java.lang.String BRAND",
+                        "android.os.Build: java.lang.String DEVICE",
+                        "android.os.Build: java.lang.String PRODUCT")) {
+            return true;
         }
 
         return false;

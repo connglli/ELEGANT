@@ -79,6 +79,8 @@ public class Logger {
 
     public static int level = EVERYTHING;
 
+    public static boolean willPrintClass = false;
+
     private Class<?> cls;
 
     public Logger(Class<?> cls) {
@@ -92,21 +94,21 @@ public class Logger {
     public void i(String log) {
         if (level > INFORMATION) {
             System.out.println(new Formatter().green().bold().build((
-                    cls  + ": " + "@INFORMATION: " + log)));
+                    (willPrintClass ? (cls + ": ") : "") + "@INFORMATION: " + log)));
         }
     }
 
     public void w(String log) {
         if (level > WARNING) {
             System.out.println(new Formatter().yellow().bold().build((
-                    cls  + ": " + "@WARNING: " + log)));
+                    (willPrintClass ? (cls + ": ") : "") + "@WARNING: " + log)));
         }
     }
 
     public void e(String log) {
         if (level > ERROR) {
             System.out.println(new Formatter().red().bold().build((
-                    cls  + ": " + "@ERROR: " + log)));
+                    (willPrintClass ? (cls + ": ") : "") + "@ERROR: " + log)));
         }
     }
 }
