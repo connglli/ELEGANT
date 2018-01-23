@@ -29,11 +29,11 @@ public class Finder {
     }
 
     public void run() {
-        this.setUp();
+        this.init();
         this.go();
     }
 
-    private void setUp() {
+    private void init() {
         soot.G.reset();
 
         // parse options

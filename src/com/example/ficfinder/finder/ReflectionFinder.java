@@ -108,6 +108,7 @@ public class ReflectionFinder extends AbstractFinder {
             }
 
             if (null == definedVar) {
+                // no variable is defined when using this reflection, we simply treat this as a potential bug
                 validatedEdges.add(edge);
             } else {
                 // we must guarantee that the handler got by reflection is not null

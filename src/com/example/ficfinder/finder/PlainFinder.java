@@ -64,7 +64,7 @@ import java.util.*;
  *       done
  *
  *       if node.getCallSites() == empty then
- *         while node.getParent() != t.root do
+ *         while 1 == node.getParent().getChildren().size() and node.getParent() != t.root do
  *           node = node.getParent()
  *         done
  *         delete node in t
@@ -177,7 +177,8 @@ public class PlainFinder extends AbstractFinder {
 
         // 2. cut all fixed node
         for (MultiTree.Node<CallSites> n : nodesToBeCut) {
-            while (!n.getParent().equals(callSitesTree.getRoot())) {
+            // parent has no other children
+            while (1 == n.getParent().getChildren().size() && !n.getParent().equals(callSitesTree.getRoot())) {
                 n = n.getParent();
             }
             callSitesTree.remove(n.getData());
@@ -213,7 +214,6 @@ public class PlainFinder extends AbstractFinder {
 
         return model.hasBadDevices() || !model.matchApiLevel(targetSdk, minSdk);
     }
-
 
     // computeCallSites computes all call sites of calleeNode, thus find all its children,
     // this is not a pure function, because calleeNode will be added its children
@@ -381,27 +381,29 @@ public class PlainFinder extends AbstractFinder {
         Value          rightV   = useBoxes.get(1).getValue();
 
         if (leftV instanceof Constant && rightV instanceof Local) {
-            Constant c = (Constant) leftV;
-            Local    v = (Local) rightV;
+            Constant   c  = (Constant) leftV;
+            Local      v  = (Local) rightV;
+            AssignStmt as = slicing.iterator().hasNext() ? (AssignStmt) slicing.iterator().next() : null;
 
             if ((c instanceof IntConstant) &&
                     (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
-                    canHandleIssue_IfStmt_VariableConstant01(model, (AssignStmt) slicing.iterator().next())) {
+                    canHandleIssue_IfStmt_VariableConstant01(model, as)) {
                 return true;
             } else if ((c instanceof IntConstant) &&
-                    canHandleIssue_IfStmt_VariableConstantNot01(model, c, (AssignStmt) slicing.iterator().next())) {
+                    canHandleIssue_IfStmt_VariableConstantNot01(model, c, as)) {
                 return true;
             }
         } else if (rightV instanceof Constant && leftV instanceof Local) {
-            Local    v = (Local) leftV;
-            Constant c = (Constant) rightV;
+            Local      v  = (Local) leftV;
+            Constant   c  = (Constant) rightV;
+            AssignStmt as = slicing.iterator().hasNext() ? (AssignStmt) slicing.iterator().next() : null;
 
             if ((c instanceof IntConstant) &&
                     (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
-                    canHandleIssue_IfStmt_VariableConstant01(model, (AssignStmt) slicing.iterator().next())) {
+                    canHandleIssue_IfStmt_VariableConstant01(model, as)) {
                 return true;
             } else if ((c instanceof IntConstant) &&
-                    canHandleIssue_IfStmt_VariableConstantNot01(model, c, (AssignStmt) slicing.iterator().next())) {
+                    canHandleIssue_IfStmt_VariableConstantNot01(model, c, as)) {
                 return true;
             }
         }
@@ -426,7 +428,7 @@ public class PlainFinder extends AbstractFinder {
     }
 
     private boolean canHandleIssue_IfStmt_VariableConstant01(ApiContext model, AssignStmt defStmt) {
-        if (defStmt.containsInvokeExpr()) {
+        if (null != defStmt && defStmt.containsInvokeExpr()) {
             InvokeExpr invokeExpr = defStmt.getInvokeExpr();
             List<Value> values = invokeExpr.getArgs();
             for (Value value : values) {
@@ -440,7 +442,7 @@ public class PlainFinder extends AbstractFinder {
     }
 
     private boolean canHandleIssue_IfStmt_VariableConstantNot01(ApiContext model, Constant constant, AssignStmt defStmt) {
-        if (canHandleIssue_IfStmt_ArgMatchApiContext(model, constant) &&
+        if (null != defStmt && canHandleIssue_IfStmt_ArgMatchApiContext(model, constant) &&
                 canHandleIssue_Common_UnitContainsSpecStrings(model, defStmt)) {
             return true;
         }
@@ -461,25 +463,29 @@ public class PlainFinder extends AbstractFinder {
     }
 
     private boolean canHandleIssue_Common_UnitContainsSpecStrings(ApiContext model, AssignStmt stmt) {
-        // if the state contains a method, we assume that most develops won't check api just using 1+ method invoking.
-        if (stmt.containsInvokeExpr()) {
-            if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
-                    model, stmt.getInvokeExpr().getMethod().getActiveBody().toString())) {
-                return true;
+        try {
+            // if the state contains a method, we assume that most develops won't check api just using 1+ method invoking.
+            if (stmt.containsInvokeExpr()) {
+                if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
+                        model, stmt.getInvokeExpr().getMethod().getActiveBody().toString())) {
+                    return true;
+                }
             }
-        }
 
-        // check use boxes
-        List<ValueBox> useValueBoxes = stmt.getUseBoxes();
+            // check use boxes
+            List<ValueBox> useValueBoxes = stmt.getUseBoxes();
 
-        for (ValueBox vb : useValueBoxes) {
-            if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
-                    model, vb.getValue().toString())) {
-                return true;
+            for (ValueBox vb : useValueBoxes) {
+                if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
+                        model, vb.getValue().toString())) {
+                    return true;
+                }
             }
-        }
 
-        return false;
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private boolean canHandleIssue_Common_UnitContainsSpecStrings_Checking(ApiContext model, String s) {
