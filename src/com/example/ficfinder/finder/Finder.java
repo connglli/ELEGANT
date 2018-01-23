@@ -2,6 +2,8 @@ package com.example.ficfinder.finder;
 
 
 import com.example.ficfinder.Env;
+import com.example.ficfinder.finder.plainfinder.PFinder;
+import com.example.ficfinder.finder.reflectionfinder.RFinder;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.utils.Logger;
 import soot.*;
@@ -72,11 +74,11 @@ public class Finder {
         Set<ApiContext> models = Env.v().getModels();
 
         // vanilla checking
-        AbstractFinder plainFinder = new PlainFinder(models);
+        AbstractFinder plainFinder = new PFinder(models);
         plainFinder.report();
 
         // reflection checking
-        AbstractFinder reflectionFinder = new ReflectionFinder(models);
+        AbstractFinder reflectionFinder = new RFinder(models);
         reflectionFinder.report();
     }
 

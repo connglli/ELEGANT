@@ -36,7 +36,12 @@ public class Tracker implements PubSub {
     }
 
     @Override
-    public void publish(Issue issue) {
+    public void publish(Message message) {
+        if (!(message instanceof Issue)) {
+            return ;
+        }
+
+        Issue issue = (Issue) message;
         for (Handle handle : handles) {
             handle.handle(issue);
         }

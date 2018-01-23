@@ -2,8 +2,9 @@ package com.example.ficfinder;
 
 
 import com.example.ficfinder.models.ApiContext;
+import com.example.ficfinder.tracker.Issue;
 import com.example.ficfinder.tracker.PubSub;
-import com.example.ficfinder.tracker.PubSub.Issue;
+import com.example.ficfinder.tracker.PubSub.Message;
 import com.example.ficfinder.tracker.Tracker;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;

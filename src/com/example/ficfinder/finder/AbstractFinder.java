@@ -11,7 +11,13 @@ public abstract class AbstractFinder {
 
     public AbstractFinder(Set<ApiContext> models) {
         this.models = models;
+        setUp();
     }
+
+    /**
+     * setUp allows you to do some setup works, such as initializations
+     */
+    public void setUp() { }
 
     /**
      * detect will detect all potential bugs triggered by model

@@ -1,9 +1,11 @@
-package com.example.ficfinder.finder;
+package com.example.ficfinder.finder.plainfinder;
 
 import com.example.ficfinder.Env;
+import com.example.ficfinder.finder.AbstractFinder;
+import com.example.ficfinder.finder.CallSites;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
-import com.example.ficfinder.tracker.Issue;
+import com.example.ficfinder.tracker.Tracker;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.MultiTree;
 import com.example.ficfinder.utils.Soots;
@@ -84,15 +86,20 @@ import java.util.*;
  *   done
  *
  */
-public class PlainFinder extends AbstractFinder {
+public class PFinder extends AbstractFinder {
 
-    private Logger logger = new Logger(PlainFinder.class);
+    private Logger logger = new Logger(PFinder.class);
 
     // callSitesTree is a call site tree for the detected model
     private MultiTree<CallSites> callSitesTree;
 
-    public PlainFinder(Set<ApiContext> models) {
+    public PFinder(Set<ApiContext> models) {
         super(models);
+    }
+
+    @Override
+    public void setUp() {
+        Tracker.v().subscribe(new PIssueHandle());
     }
 
     // We will use create_Tree in detection phase
@@ -198,11 +205,11 @@ public class PlainFinder extends AbstractFinder {
         }
 
         // search issues in call sites tree
-        List<Issue> issues = this.searchIssuesInCallSitesNode(
+        List<PIssue> pIssues = this.searchIssuesInCallSitesNode(
                 callSitesTree.getRoot(), callSitesTree.getRoot(), model);
 
         // emit the issues found
-        issues.forEach(i -> Env.v().emit(i));
+        pIssues.forEach(i -> Env.v().emit(i));
     }
 
     // maybeFICable checks whether the call site is ficable i.e. may generate FIC issues
@@ -509,16 +516,16 @@ public class PlainFinder extends AbstractFinder {
     }
 
     // searchIssuesInCallSitesNode recursively searches issues of a call sites node
-    private List<Issue> searchIssuesInCallSitesNode(MultiTree.Node<CallSites> root,
-                                                    MultiTree.Node<CallSites> n,
-                                                    ApiContext model) {
+    private List<PIssue> searchIssuesInCallSitesNode(MultiTree.Node<CallSites> root,
+                                                     MultiTree.Node<CallSites> n,
+                                                     ApiContext model) {
         final SootMethod              caller       = n.getData().getCaller();
         final Set<Unit>               callSites    = n.getData().getCallSites();
-        final List<Issue.CallerPoint> callerPoints = new ArrayList<>();
-        final List<Issue>             issues       = new ArrayList<>();
+        final List<PIssue.CallerPoint> callerPoints = new ArrayList<>();
+        final List<PIssue> pIssues = new ArrayList<>();
 
         callSites.forEach(u -> {
-            callerPoints.add(new Issue.CallerPoint(
+            callerPoints.add(new PIssue.CallerPoint(
                     "~",
                     u.getJavaSourceStartLineNumber(),
                     u.getJavaSourceStartColumnNumber(),
@@ -528,35 +535,35 @@ public class PlainFinder extends AbstractFinder {
 
         if (0 == n.getChildren().size()) {
             callerPoints.forEach(si -> {
-                Issue issue = new Issue(model);
-                issue.addCallPoint(si);
-                issues.add(issue);
+                PIssue pIssue = new PIssue(model);
+                pIssue.addCallPoint(si);
+                pIssues.add(pIssue);
             });
         } else {
             for (MultiTree.Node<CallSites> c : n.getChildren()) {
-                List<Issue> issuesOfC = searchIssuesInCallSitesNode(root, c, model);
+                List<PIssue> issuesOfC = searchIssuesInCallSitesNode(root, c, model);
                 if (n.equals(root)) {
                     // root is a virtual node, just add all issues of its children
-                    issues.addAll(issuesOfC);
-                    issues.forEach(i -> i.setCalleePoint(new Issue.CalleePoint(caller.getSignature())));
+                    pIssues.addAll(issuesOfC);
+                    pIssues.forEach(i -> i.setCalleePoint(new PIssue.CalleePoint(caller.getSignature())));
                 } else {
                     // new issues are issuesOfC X subIssues (Cartesian Product)
                     callerPoints.forEach(si -> {
-                        List<Issue> cloneIssues = new ArrayList<> (issuesOfC.size());
+                        List<PIssue> clonePIssues = new ArrayList<> (issuesOfC.size());
                         issuesOfC.forEach(i -> {
                             try {
-                                cloneIssues.add((Issue) i.clone());
+                                clonePIssues.add((PIssue) i.clone());
                             } catch (CloneNotSupportedException e) {
                                 // do nothing here
                             }
                         });
-                        cloneIssues.forEach(ci -> ci.addCallPoint(si));
-                        issues.addAll(cloneIssues);
+                        clonePIssues.forEach(ci -> ci.addCallPoint(si));
+                        pIssues.addAll(clonePIssues);
                     });
                 }
             }
         }
 
-        return issues;
+        return pIssues;
     }
 }

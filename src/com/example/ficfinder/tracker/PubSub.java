@@ -2,10 +2,10 @@ package com.example.ficfinder.tracker;
 
 public interface PubSub {
 
-    interface Issue {}
+    interface Message {}
 
     interface Handle {
-        void handle(Issue issue);
+        void handle(Message message);
     }
 
     /**
@@ -26,8 +26,8 @@ public interface PubSub {
     /**
      * Publish an Issue
      *
-     * @param issue
+     * @param message
      */
-    void publish(Issue issue);
+    void publish(Message message);
 
 }

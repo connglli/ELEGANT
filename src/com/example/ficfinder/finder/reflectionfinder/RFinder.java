@@ -1,9 +1,10 @@
-package com.example.ficfinder.finder;
+package com.example.ficfinder.finder.reflectionfinder;
 
 import com.example.ficfinder.Env;
+import com.example.ficfinder.finder.AbstractFinder;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
-import com.example.ficfinder.tracker.Issue;
+import com.example.ficfinder.tracker.Tracker;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.Soots;
 import com.example.ficfinder.utils.Strings;
@@ -15,9 +16,9 @@ import soot.jimple.toolkits.callgraph.Edge;
 
 import java.util.*;
 
-public class ReflectionFinder extends AbstractFinder {
+public class RFinder extends AbstractFinder {
 
-    private Logger logger = new Logger(ReflectionFinder.class);
+    private Logger logger = new Logger(RFinder.class);
 
     // REFLECTION_GET_METHOD_SIGNATURE is the soot signature of class.getMethod
     private static String REFLECTION_GET_METHOD_SIGNATURE =
@@ -32,7 +33,7 @@ public class ReflectionFinder extends AbstractFinder {
     // validatedEdges stores all validated edges in validation phase, that will be emitted in generation phase
     private Set<Edge> validatedEdges;
 
-    public ReflectionFinder(Set<ApiContext> models) {
+    public RFinder(Set<ApiContext> models) {
         super(models);
 
         edges          = new HashSet<>();
@@ -42,6 +43,11 @@ public class ReflectionFinder extends AbstractFinder {
         // find all edges
         Iterator<Edge> it = Scene.v().getCallGraph().edgesInto(Scene.v().getMethod(REFLECTION_GET_METHOD_SIGNATURE));
         while (it.hasNext()) { edges.add(it.next()); }
+    }
+
+    @Override
+    public void setUp() {
+        Tracker.v().subscribe(new RIssueHandle());
     }
 
     @Override
@@ -150,17 +156,14 @@ public class ReflectionFinder extends AbstractFinder {
         for (Edge edge : validatedEdges) {
             Unit       callSiteUnit = edge.srcUnit();
             SootMethod caller       = edge.src();
-            ApiMethod  callee       = (ApiMethod) model.getApi();
 
-            Issue issue = new Issue(model);
-            issue.setCalleePoint(new Issue.CalleePoint(callee.getSignature()));
-            issue.setCallerPoints(Arrays.asList(new Issue.CallerPoint(
-                    "~",
-                    callSiteUnit.getJavaSourceStartLineNumber(),
-                    callSiteUnit.getJavaSourceStartColumnNumber(),
-                    caller.getSignature())));
+            RIssue rIssue = new RIssue(model,
+                "~",
+                callSiteUnit.getJavaSourceStartLineNumber(),
+                callSiteUnit.getJavaSourceStartColumnNumber(),
+                caller.getSignature());
 
-            Env.v().emit(issue);
+            Env.v().emit(rIssue);
         }
     }
 
