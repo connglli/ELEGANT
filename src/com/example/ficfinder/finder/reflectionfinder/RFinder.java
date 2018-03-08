@@ -117,25 +117,55 @@ public class RFinder extends AbstractFinder {
                 // no variable is defined when using this reflection, we simply treat this as a potential bug
                 validatedEdges.add(edge);
             } else {
-                // here we will run a nullness analysis, to guarantee that the r9 is checked unnullness
-                NullnessAnalysis nullnessAnalysis = new NullnessAnalysis(new BriefUnitGraph(caller.getActiveBody()));
+                // non-nullness can be ensured by: 1. if-else checking 2. try-catch block
+
+                Body body = caller.getActiveBody();
+
+                // here we will run a nullness analysis, to guarantee that the r9 is checked non-nullness via if-else
+                NullnessAnalysis nullnessAnalysis = new NullnessAnalysis(new BriefUnitGraph(body));
 
                 // we must guarantee that the handler got by reflection is not null
-                boolean    fixed = false;
-                List<Unit> units = new ArrayList<>(caller.getActiveBody().getUnits());
+                boolean    fixed = true;
+                List<Unit> units = new ArrayList<>(body.getUnits());
                 int        index = units.indexOf(callSiteUnit);
 
-                // traverse units after call site, guarantee that invoking of r9 is checked unnullness
+                // get all try-catch blocks to get ready for try-catch checking
+                List<Trap> traps = new ArrayList<>(body.getTraps());
+
+                // traverse units after call site, guarantee that invoking of r9 is checked non-nullness
                 for (int i = index + 1; i < units.size(); i++) {
                     Unit u = units.get(i);
 
                     // u does not invoke r9, skip it
                     if (!Strings.contains(u.toString(), definedVar.toString() + ".")) { continue; }
 
-                    // ensure that r9 is non-null
-                    if (nullnessAnalysis.isAlwaysNonNullBefore(u, (Immediate) definedVar)) {
-                        fixed = true;
-                        break;
+                    // ensure that r9 is non-null via if-else
+                    if (!nullnessAnalysis.isAlwaysNonNullBefore(u, (Immediate) definedVar)) {
+                        // non-nullness can not be guaranteed by if-else,
+                        // then, we must do a try-catch checking
+                        boolean caught = false;
+                        for (Trap trap : traps) {
+                            SootClass exceptionClass = trap.getException();
+                            String javaStyleName = exceptionClass.getJavaStyleName();
+                            int bidx = units.indexOf(trap.getBeginUnit());
+                            int eidx = units.indexOf(trap.getEndUnit());
+
+                            // this trap can catch u, and the exception to be caught
+                            // is a NoSuchMethodException or a its super classes' instance
+                            if (bidx <= i && i <= eidx &&
+                                    ("NoSuchMethodException".equals(javaStyleName) ||
+                                     "ReflectiveOperationException".equals(javaStyleName) ||
+                                     "Exception".equals(javaStyleName))
+                                    ) {
+                                caught = true;
+                                break;
+                            }
+                        }
+
+                        if (!caught) {
+                            fixed = false;
+                            break;
+                        }
                     }
                 }
 
