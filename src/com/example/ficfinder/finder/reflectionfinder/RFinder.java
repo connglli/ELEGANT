@@ -9,10 +9,10 @@ import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.Soots;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
-import soot.jimple.IfStmt;
-import soot.jimple.NullConstant;
 import soot.jimple.Stmt;
+import soot.jimple.toolkits.annotation.nullcheck.NullnessAnalysis;
 import soot.jimple.toolkits.callgraph.Edge;
+import soot.toolkits.graph.BriefUnitGraph;
 
 import java.util.*;
 
@@ -117,24 +117,25 @@ public class RFinder extends AbstractFinder {
                 // no variable is defined when using this reflection, we simply treat this as a potential bug
                 validatedEdges.add(edge);
             } else {
+                // here we will run a nullness analysis, to guarantee that the r9 is checked unnullness
+                NullnessAnalysis nullnessAnalysis = new NullnessAnalysis(new BriefUnitGraph(caller.getActiveBody()));
+
                 // we must guarantee that the handler got by reflection is not null
                 boolean    fixed = false;
                 List<Unit> units = new ArrayList<>(caller.getActiveBody().getUnits());
                 int        index = units.indexOf(callSiteUnit);
 
-                // traverse units after call site, guarantee that r9 is checked unnullness
+                // traverse units after call site, guarantee that invoking of r9 is checked unnullness
                 for (int i = index + 1; i < units.size(); i++) {
                     Unit u = units.get(i);
-                    if (u instanceof IfStmt) {
-                        List<ValueBox> useBoxes = ((IfStmt) u).getCondition().getUseBoxes();
-                        Value leftV = useBoxes.get(0).getValue();
-                        Value rightV = useBoxes.get(1).getValue();
 
-                        if ((leftV instanceof NullConstant && rightV.equals(definedVar)) ||
-                                (rightV instanceof NullConstant && leftV.equals(definedVar))) {
-                            fixed = true;
-                            break;
-                        }
+                    // u does not invoke r9, skip it
+                    if (!Strings.contains(u.toString(), definedVar.toString() + ".")) { continue; }
+
+                    // ensure that r9 is non-null
+                    if (nullnessAnalysis.isAlwaysNonNullBefore(u, (Immediate) definedVar)) {
+                        fixed = true;
+                        break;
                     }
                 }
 

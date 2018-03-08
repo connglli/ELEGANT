@@ -368,7 +368,7 @@ public class PFinder extends AbstractFinder {
     }
 
     // canHandleIssue checks whether the stmt can handle the specific issue
-    public boolean canHandleIssue(ApiContext model, Map.Entry<Object, Set<Unit>> paritialSlicing) {
+    private boolean canHandleIssue(ApiContext model, Map.Entry<Object, Set<Unit>> paritialSlicing) {
         Object    key     = paritialSlicing.getKey();
         Set<Unit> slicing = paritialSlicing.getValue();
 
