@@ -146,16 +146,18 @@ public class RFinder extends AbstractFinder {
                         boolean caught = false;
                         for (Trap trap : traps) {
                             SootClass exceptionClass = trap.getException();
-                            String javaStyleName = exceptionClass.getJavaStyleName();
+                            String exceptionJavaStyleName = exceptionClass.getJavaStyleName();
                             int bidx = units.indexOf(trap.getBeginUnit());
                             int eidx = units.indexOf(trap.getEndUnit());
 
                             // this trap can catch u, and the exception to be caught
-                            // is a NoSuchMethodException or a its super classes' instance
+                            // is a NullPointerException or a NoSuchMethodException
+                            // or a its super classes' instance
                             if (bidx <= i && i <= eidx &&
-                                    ("NoSuchMethodException".equals(javaStyleName) ||
-                                     "ReflectiveOperationException".equals(javaStyleName) ||
-                                     "Exception".equals(javaStyleName))
+                                    ("NullPointerException".equals(exceptionJavaStyleName) ||
+                                     "NoSuchMethodException".equals(exceptionJavaStyleName) ||
+                                     "ReflectiveOperationException".equals(exceptionJavaStyleName) ||
+                                     "Exception".equals(exceptionJavaStyleName))
                                     ) {
                                 caught = true;
                                 break;

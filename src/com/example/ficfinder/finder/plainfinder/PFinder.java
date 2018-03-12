@@ -88,10 +88,18 @@ import java.util.*;
  */
 public class PFinder extends AbstractFinder {
 
+    public static final int NO_FIC_ISSUES                 = 0x0;
+    public static final int DEVICE_SPECIFIC_FIC_ISSUE     = 0x1;
+    public static final int NON_DEVICE_SPECIFIC_FIC_ISSUE = 0x2;
+    public static final int BOTH_FIC_ISSUE                = DEVICE_SPECIFIC_FIC_ISSUE | NON_DEVICE_SPECIFIC_FIC_ISSUE;
+
     private Logger logger = new Logger(PFinder.class);
 
     // callSitesTree is a call site tree for the detected model
     private MultiTree<CallSites> callSitesTree;
+
+    // issueType is the fic issue type of the detected model
+    private int issueType = NO_FIC_ISSUES;
 
     public PFinder(Set<ApiContext> models) {
         super(models);
@@ -109,7 +117,9 @@ public class PFinder extends AbstractFinder {
             return false;
         }
 
-        if (!maybeFICable(model)) {
+        issueType = ficIssueGetType(model);
+
+        if (NO_FIC_ISSUES == issueType) {
             return false;
         }
 
@@ -164,8 +174,8 @@ public class PFinder extends AbstractFinder {
             for (Unit callSite : callSites) {
                 Map<Object, Set<Unit>>            slicing         = runBackwardSlicingFor(caller, callSite);
                 Set<Map.Entry<Object, Set<Unit>>> partialSlicings = slicing.entrySet();
-                for (Map.Entry<Object, Set<Unit>> paritialSlicing : partialSlicings) {
-                    if (canHandleIssue(model, paritialSlicing)) {
+                for (Map.Entry<Object, Set<Unit>> partialSlicing : partialSlicings) {
+                    if (canHandleIssue(model, issueType, partialSlicing)) {
                         callSitesToBeCut.add(callSite);
                         break;
                     }
@@ -212,14 +222,19 @@ public class PFinder extends AbstractFinder {
         pIssues.forEach(i -> Env.v().emit(i));
     }
 
-    // maybeFICable checks whether the call site is ficable i.e. may generate FIC issues
-    private boolean maybeFICable(ApiContext model) {
+    // ficIssueGetType checks whether the call site is ficable i.e. may generate FIC issues
+    private int ficIssueGetType(ApiContext model) {
         // compiled sdk version, used to check whether an api
         // is accessible or not
         final int targetSdk = Env.v().getManifest().targetSdkVersion();
         final int minSdk    = Env.v().getManifest().getMinSdkVersion();
 
-        return model.hasBadDevices() || !model.matchApiLevel(targetSdk, minSdk);
+        int result = 0;
+
+        result |= model.hasBadDevices() ? DEVICE_SPECIFIC_FIC_ISSUE : 0;
+        result |= model.matchApiLevel(targetSdk, minSdk) ? 0 : NON_DEVICE_SPECIFIC_FIC_ISSUE;
+
+        return result;
     }
 
     // computeCallSites computes all call sites of calleeNode, thus find all its children,
@@ -368,21 +383,64 @@ public class PFinder extends AbstractFinder {
     }
 
     // canHandleIssue checks whether the stmt can handle the specific issue
-    private boolean canHandleIssue(ApiContext model, Map.Entry<Object, Set<Unit>> paritialSlicing) {
-        Object    key     = paritialSlicing.getKey();
-        Set<Unit> slicing = paritialSlicing.getValue();
+    private boolean canHandleIssue(ApiContext model, int issueType, Map.Entry<Object, Set<Unit>> partialSlicing) {
+        switch (issueType) {
+            case NO_FIC_ISSUES:
+                return true;
+            case NON_DEVICE_SPECIFIC_FIC_ISSUE:
+                return canHandleNonDeviceSpecificIssue(model, partialSlicing);
+            case DEVICE_SPECIFIC_FIC_ISSUE:
+                return canHandleDeviceSpecificIssue(model, partialSlicing);
+            case BOTH_FIC_ISSUE:
+                return canHandleDeviceSpecificIssue(model, partialSlicing) &&
+                        canHandleNonDeviceSpecificIssue(model, partialSlicing);
+            default:
+                logger.w("Illegal issue type " + issueType);
+                return false;
+        }
+    }
+
+    // canHandleDeviceSpecificIssue checks whether the stmt can handle the device specific issue
+    private boolean canHandleDeviceSpecificIssue(ApiContext model, Map.Entry<Object, Set<Unit>> partialSlicing) {
+        Set<Unit> slicing = partialSlicing.getValue();
+        String[]  devices = model.getContext().getBadDevices();
+
+        for (Unit u : slicing) {
+            String us = u.toString();
+            if (Strings.contains(us,
+                    "android.os.Build: java.lang.String BOARD",
+                    "android.os.Build: java.lang.String BRAND",
+                    "android.os.Build: java.lang.String DEVICE",
+                    "android.os.Build: java.lang.String PRODUCT")) {
+                return true;
+            } else {
+                for (String device : devices) {
+                    if (us.contains(device)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // canHandleNonDeviceSpecificIssue checks whether the stmt can handle the non device specific issue
+    private boolean canHandleNonDeviceSpecificIssue(ApiContext model, Map.Entry<Object, Set<Unit>> partialSlicing) {
+        Object    key     = partialSlicing.getKey();
+        Set<Unit> slicing = partialSlicing.getValue();
 
         if (key instanceof IfStmt) {
             // definitions of values used in if stmt
-            return canHandleIssue_IfStmt(model, (IfStmt) key, slicing);
+            return canHandleNonDeviceSpecificIssue_IfStmt(model, (IfStmt) key, slicing);
         }
 
         // slicing of common callsites
-        return canHandleIssue_Common(model, slicing);
+        return canHandleNonDeviceSpecificIssue_Common(model, slicing);
     }
 
     // canHandleIssue_IfStmt checks whether the IfStmt s will fix the issue or not
-    private boolean canHandleIssue_IfStmt(ApiContext model, IfStmt s, Set<Unit> slicing) {
+    private boolean canHandleNonDeviceSpecificIssue_IfStmt(ApiContext model, IfStmt s, Set<Unit> slicing) {
         List<ValueBox> useBoxes = s.getCondition().getUseBoxes();
         Value          leftV    = useBoxes.get(0).getValue();
         Value          rightV   = useBoxes.get(1).getValue();
@@ -394,10 +452,10 @@ public class PFinder extends AbstractFinder {
 
             if ((c instanceof IntConstant) &&
                     (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
-                    canHandleIssue_IfStmt_VariableConstant01(model, as)) {
+                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstant01(model, as)) {
                 return true;
             } else if ((c instanceof IntConstant) &&
-                    canHandleIssue_IfStmt_VariableConstantNot01(model, c, as)) {
+                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstantNot01(model, c, as)) {
                 return true;
             }
         } else if (rightV instanceof Constant && leftV instanceof Local) {
@@ -407,10 +465,10 @@ public class PFinder extends AbstractFinder {
 
             if ((c instanceof IntConstant) &&
                     (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
-                    canHandleIssue_IfStmt_VariableConstant01(model, as)) {
+                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstant01(model, as)) {
                 return true;
             } else if ((c instanceof IntConstant) &&
-                    canHandleIssue_IfStmt_VariableConstantNot01(model, c, as)) {
+                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstantNot01(model, c, as)) {
                 return true;
             }
         }
@@ -419,14 +477,14 @@ public class PFinder extends AbstractFinder {
     }
 
     // canHandleIssue_IfStmt checks whether the other Stmt s contained in the slicing will fix the issue or not
-    private boolean canHandleIssue_Common(ApiContext model, Set<Unit> slicing) {
+    private boolean canHandleNonDeviceSpecificIssue_Common(ApiContext model, Set<Unit> slicing) {
         for (Unit unit : slicing) {
             // we only parse Jimple
             if (!(unit instanceof AssignStmt)) {
                 return false;
             }
 
-            if (canHandleIssue_Common_UnitContainsSpecStrings(model, (AssignStmt) unit)) {
+            if (canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(model, (AssignStmt) unit)) {
                 return true;
             }
         }
@@ -434,12 +492,12 @@ public class PFinder extends AbstractFinder {
         return false;
     }
 
-    private boolean canHandleIssue_IfStmt_VariableConstant01(ApiContext model, AssignStmt defStmt) {
+    private boolean canHandleNonDeviceSpecificIssue_IfStmt_VariableConstant01(ApiContext model, AssignStmt defStmt) {
         if (null != defStmt && defStmt.containsInvokeExpr()) {
             InvokeExpr invokeExpr = defStmt.getInvokeExpr();
             List<Value> values = invokeExpr.getArgs();
             for (Value value : values) {
-                if (value instanceof Constant && canHandleIssue_IfStmt_ArgMatchApiContext(model, (Constant) value)) {
+                if (value instanceof Constant && canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(model, (Constant) value)) {
                     return true;
                 }
             }
@@ -448,16 +506,16 @@ public class PFinder extends AbstractFinder {
         return false;
     }
 
-    private boolean canHandleIssue_IfStmt_VariableConstantNot01(ApiContext model, Constant constant, AssignStmt defStmt) {
-        if (null != defStmt && canHandleIssue_IfStmt_ArgMatchApiContext(model, constant) &&
-                canHandleIssue_Common_UnitContainsSpecStrings(model, defStmt)) {
+    private boolean canHandleNonDeviceSpecificIssue_IfStmt_VariableConstantNot01(ApiContext model, Constant constant, AssignStmt defStmt) {
+        if (null != defStmt && canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(model, constant) &&
+                canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(model, defStmt)) {
             return true;
         }
 
         return false;
     }
 
-    private boolean canHandleIssue_IfStmt_ArgMatchApiContext(ApiContext model, Constant constant) {
+    private boolean canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(ApiContext model, Constant constant) {
         if (constant instanceof IntConstant) {
             int sdkInt = ((IntConstant) constant).value;
             return model.getContext().getMinApiLevel() <= sdkInt && sdkInt <= model.getContext().getMaxApiLevel();
@@ -469,11 +527,11 @@ public class PFinder extends AbstractFinder {
         return false;
     }
 
-    private boolean canHandleIssue_Common_UnitContainsSpecStrings(ApiContext model, AssignStmt stmt) {
+    private boolean canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(ApiContext model, AssignStmt stmt) {
         try {
             // if the state contains a method, we assume that most develops won't check api just using 1+ method invoking.
             if (stmt.containsInvokeExpr()) {
-                if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
+                if (canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings_Checking(
                         model, stmt.getInvokeExpr().getMethod().getActiveBody().toString())) {
                     return true;
                 }
@@ -483,7 +541,7 @@ public class PFinder extends AbstractFinder {
             List<ValueBox> useValueBoxes = stmt.getUseBoxes();
 
             for (ValueBox vb : useValueBoxes) {
-                if (canHandleIssue_Common_UnitContainsSpecStrings_Checking(
+                if (canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings_Checking(
                         model, vb.getValue().toString())) {
                     return true;
                 }
@@ -495,20 +553,11 @@ public class PFinder extends AbstractFinder {
         }
     }
 
-    private boolean canHandleIssue_Common_UnitContainsSpecStrings_Checking(ApiContext model, String s) {
+    private boolean canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings_Checking(ApiContext model, String s) {
         if ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
                 (Strings.containsIgnoreCase(s,
                         "android.os.Build$VERSION: int SDK_INT",
                         "android.os.Build$VERSION: java.lang.String SDK"))) {
-            return true;
-        }
-
-        if (model.hasBadDevices() &&
-                Strings.containsIgnoreCase(s,
-                        "android.os.Build: java.lang.String BOARD",
-                        "android.os.Build: java.lang.String BRAND",
-                        "android.os.Build: java.lang.String DEVICE",
-                        "android.os.Build: java.lang.String PRODUCT")) {
             return true;
         }
 
