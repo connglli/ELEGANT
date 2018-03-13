@@ -5,20 +5,12 @@ import java.util.List;
 
 public class Tracker implements PubSub {
 
-    // Singleton
-
-    private static Tracker instance;
-
     // Handles
 
     private List<Handle> handles;
 
-    public static Tracker v() {
-        if (instance == null) {
-            instance = new Tracker();
-        }
-
-        return instance;
+    public Tracker() {
+        handles = new LinkedList<>();
     }
 
     @Override
@@ -47,7 +39,4 @@ public class Tracker implements PubSub {
         }
     }
 
-    private Tracker() {
-        handles = new LinkedList<>();
-    }
 }

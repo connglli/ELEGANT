@@ -1,8 +1,3 @@
-# Compiled class file
-out/*
-*.class
-*.jimple
-
 # Log file
 *.log
 
@@ -76,5 +71,10 @@ crashlytics-build.properties
 fabric.properties
 
 # self project
+# Compiled class file
+out/*
+*.class
+*.jimple
+**/META-INF/*
 assets/android-platforms/**/android.jar
 test/**/*.apk

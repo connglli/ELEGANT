@@ -1,6 +1,7 @@
 package com.example.ficfinder.finder.reflectionfinder;
 
-import com.example.ficfinder.Env;
+import com.example.ficfinder.Container;
+import com.example.ficfinder.finder.Env;
 import com.example.ficfinder.finder.AbstractFinder;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
@@ -33,8 +34,8 @@ public class RFinder extends AbstractFinder {
     // validatedEdges stores all validated edges in validation phase, that will be emitted in generation phase
     private Set<Edge> validatedEdges;
 
-    public RFinder(Set<ApiContext> models) {
-        super(models);
+    public RFinder(Container container, Set<ApiContext> models) {
+        super(container, models);
 
         edges          = new HashSet<>();
         detectedEdges  = new HashSet<>();
@@ -47,7 +48,7 @@ public class RFinder extends AbstractFinder {
 
     @Override
     public void setUp() {
-        Tracker.v().subscribe(new RIssueHandle());
+        this.container.getTracker().subscribe(new RIssueHandle());
     }
 
     @Override
@@ -196,7 +197,7 @@ public class RFinder extends AbstractFinder {
                 callSiteUnit.getJavaSourceStartColumnNumber(),
                 caller.getSignature());
 
-            Env.v().emit(rIssue);
+            this.container.getEnvironment().emit(rIssue);
         }
     }
 

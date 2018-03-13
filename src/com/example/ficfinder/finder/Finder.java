@@ -1,7 +1,7 @@
 package com.example.ficfinder.finder;
 
 
-import com.example.ficfinder.Env;
+import com.example.ficfinder.Container;
 import com.example.ficfinder.finder.plainfinder.PFinder;
 import com.example.ficfinder.finder.reflectionfinder.RFinder;
 import com.example.ficfinder.models.ApiContext;
@@ -16,18 +16,13 @@ import java.util.*;
 
 public class Finder {
 
-    // Singleton
-
-    private static Finder instance;
-
     private Logger logger = new Logger(Finder.class);
 
-    public static Finder v() {
-        if (instance == null) {
-            instance = new Finder();
-        }
+    // container is the container that finder is in
+    private Container container;
 
-        return instance;
+    public Finder(Container container) {
+        this.container = container;
     }
 
     public void run() {
@@ -39,14 +34,14 @@ public class Finder {
         soot.G.reset();
 
         // parse options
-        Options.v().parse(Env.OPTIONS);
+        Options.v().parse(this.container.getEnvironment().getOptions());
 
         // load classes
         Scene.v().loadNecessaryClasses();
         Scene.v().loadBasicClasses();
 
         // fake main created by flowdroid
-        SootMethod entryPoint = Env.v().getApp().getEntryPointCreator().createDummyMain();
+        SootMethod entryPoint = this.container.getEnvironment().getApp().getEntryPointCreator().createDummyMain();
         Options.v().set_main_class(entryPoint.getSignature());
         Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
 
@@ -56,7 +51,7 @@ public class Finder {
             protected void internalTransform(Body body, String s, Map<String, String> map) {
                 String methodSignature = body.getMethod().getSignature();
                 try {
-                    Env.v().setPDG(methodSignature,
+                    container.getEnvironment().setPDG(methodSignature,
                             new HashMutablePDG(new BriefUnitGraph(body)));
                 } catch (Exception e) {
                     logger.w("Error in generating PDG for " + methodSignature);
@@ -71,14 +66,14 @@ public class Finder {
     }
 
     private void go() {
-        Set<ApiContext> models = Env.v().getModels();
+        Set<ApiContext> models = this.container.getEnvironment().getModels();
 
         // vanilla checking
-        AbstractFinder plainFinder = new PFinder(models);
+        AbstractFinder plainFinder = new PFinder(container, models);
         plainFinder.report();
 
         // reflection checking
-        AbstractFinder reflectionFinder = new RFinder(models);
+        AbstractFinder reflectionFinder = new RFinder(container, models);
         reflectionFinder.report();
     }
 

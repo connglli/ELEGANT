@@ -1,15 +1,19 @@
 package com.example.ficfinder.finder;
 
+import com.example.ficfinder.Container;
 import com.example.ficfinder.models.ApiContext;
 
 import java.util.Set;
 
 public abstract class AbstractFinder {
 
+    protected Container container;
+
     // models are all ApiContext models
     protected Set<ApiContext> models;
 
-    public AbstractFinder(Set<ApiContext> models) {
+    public AbstractFinder(Container container, Set<ApiContext> models) {
+        this.container = container;
         this.models = models;
         setUp();
     }

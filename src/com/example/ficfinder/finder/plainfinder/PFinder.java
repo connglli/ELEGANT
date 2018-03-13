@@ -1,6 +1,7 @@
 package com.example.ficfinder.finder.plainfinder;
 
-import com.example.ficfinder.Env;
+import com.example.ficfinder.Container;
+import com.example.ficfinder.finder.Env;
 import com.example.ficfinder.finder.AbstractFinder;
 import com.example.ficfinder.finder.CallSites;
 import com.example.ficfinder.models.ApiContext;
@@ -101,13 +102,13 @@ public class PFinder extends AbstractFinder {
     // issueType is the fic issue type of the detected model
     private int issueType = NO_FIC_ISSUES;
 
-    public PFinder(Set<ApiContext> models) {
-        super(models);
+    public PFinder(Container container, Set<ApiContext> models) {
+        super(container, models);
     }
 
     @Override
     public void setUp() {
-        Tracker.v().subscribe(new PIssueHandle());
+        this.container.getTracker().subscribe(new PIssueHandle());
     }
 
     // We will use create_Tree in detection phase
@@ -219,15 +220,15 @@ public class PFinder extends AbstractFinder {
                 callSitesTree.getRoot(), callSitesTree.getRoot(), model);
 
         // emit the issues found
-        pIssues.forEach(i -> Env.v().emit(i));
+        pIssues.forEach(i -> this.container.getEnvironment().emit(i));
     }
 
     // ficIssueGetType checks whether the call site is ficable i.e. may generate FIC issues
     private int ficIssueGetType(ApiContext model) {
         // compiled sdk version, used to check whether an api
         // is accessible or not
-        final int targetSdk = Env.v().getManifest().targetSdkVersion();
-        final int minSdk    = Env.v().getManifest().getMinSdkVersion();
+        final int targetSdk = this.container.getEnvironment().getManifest().targetSdkVersion();
+        final int minSdk    = this.container.getEnvironment().getManifest().getMinSdkVersion();
 
         int result = 0;
 
@@ -291,7 +292,7 @@ public class PFinder extends AbstractFinder {
         Map<Object, Set<Unit>> slice = new HashMap<>();
 
         // 1. get the corresponding pdg, which describes the unit's method
-        ProgramDependenceGraph pdg = Env.v().getPDG(caller.getSignature());
+        ProgramDependenceGraph pdg = this.container.getEnvironment().getPDG(caller.getSignature());
 
         // 2. find the dependents of callerUnit
         if (pdg != null) {
