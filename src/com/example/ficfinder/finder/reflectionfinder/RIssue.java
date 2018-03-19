@@ -7,11 +7,8 @@ import com.example.ficfinder.tracker.Issue;
 public class RIssue extends Issue {
 
     private String srcFile;
-
     private int startLineNumber;
-
     private int startColumnNumber;
-
     private String method;
 
     public RIssue(ApiContext model,

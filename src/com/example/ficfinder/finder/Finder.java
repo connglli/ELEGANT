@@ -8,9 +8,6 @@ import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.utils.Logger;
 import soot.*;
 import soot.options.Options;
-import soot.toolkits.graph.BriefUnitGraph;
-import soot.toolkits.graph.pdg.*;
-
 
 import java.util.*;
 
@@ -44,20 +41,6 @@ public class Finder {
         SootMethod entryPoint = this.container.getEnvironment().getApp().getEntryPointCreator().createDummyMain();
         Options.v().set_main_class(entryPoint.getSignature());
         Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
-
-        // add a transform to generate PDG
-        PackManager.v().getPack("jtp").add(new Transform("jtp.pdg_transform", new BodyTransformer() {
-            @Override
-            protected void internalTransform(Body body, String s, Map<String, String> map) {
-                String methodSignature = body.getMethod().getSignature();
-                try {
-                    container.getEnvironment().setPDG(methodSignature,
-                            new HashMutablePDG(new BriefUnitGraph(body)));
-                } catch (Exception e) {
-                    logger.w("Error in generating PDG for " + methodSignature);
-                }
-            }
-        }));
 
         PackManager.v().runPacks();
 

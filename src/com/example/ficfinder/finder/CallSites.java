@@ -10,9 +10,7 @@ import java.util.Set;
 public class CallSites {
 
     private SootMethod caller;
-
     private SootMethod callee;
-
     private Set<Unit> callSites = new HashSet<>();
 
     public CallSites() { }

@@ -10,9 +10,7 @@ import java.util.List;
 public class Container {
 
     private ConfigParser configurations;
-
     private Tracker tracker;
-
     private Finder finder;
 
     private Env environment;

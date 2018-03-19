@@ -15,13 +15,11 @@ public class ConfigParser implements PubSub {
 
     }
 
-
     public static final String INSTR_DONE = "instruction_done"; // INSTR_DONE means configurations are all parsed
 
     // args
 
     private Map<String, String> args;
-
     private List<Handle> handles;
 
     public ConfigParser() {

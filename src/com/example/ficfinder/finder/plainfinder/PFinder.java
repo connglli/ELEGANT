@@ -6,15 +6,14 @@ import com.example.ficfinder.finder.AbstractFinder;
 import com.example.ficfinder.finder.CallSites;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
-import com.example.ficfinder.tracker.Tracker;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.MultiTree;
 import com.example.ficfinder.utils.Soots;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
 import soot.jimple.*;
-import soot.jimple.toolkits.callgraph.CallGraph;
-import soot.jimple.toolkits.callgraph.Edge;
+import soot.toolkits.graph.BriefUnitGraph;
+import soot.toolkits.graph.pdg.HashMutablePDG;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
 
 import java.util.*;
@@ -89,16 +88,16 @@ import java.util.*;
  */
 public class PFinder extends AbstractFinder {
 
-    public static final int NO_FIC_ISSUES                 = 0x0;
-    public static final int DEVICE_SPECIFIC_FIC_ISSUE     = 0x1;
-    public static final int NON_DEVICE_SPECIFIC_FIC_ISSUE = 0x2;
-    public static final int BOTH_FIC_ISSUE                = DEVICE_SPECIFIC_FIC_ISSUE | NON_DEVICE_SPECIFIC_FIC_ISSUE;
-
     private Logger logger = new Logger(PFinder.class);
+
+    // issue types definitions
+    private static final int NO_FIC_ISSUES                 = 0x0;
+    private static final int DEVICE_SPECIFIC_FIC_ISSUE     = 0x1;
+    private static final int NON_DEVICE_SPECIFIC_FIC_ISSUE = 0x2;
+    private static final int BOTH_FIC_ISSUE                = DEVICE_SPECIFIC_FIC_ISSUE | NON_DEVICE_SPECIFIC_FIC_ISSUE;
 
     // callSitesTree is a call site tree for the detected model
     private MultiTree<CallSites> callSitesTree;
-
     // issueType is the fic issue type of the detected model
     private int issueType = NO_FIC_ISSUES;
 
@@ -132,9 +131,8 @@ public class PFinder extends AbstractFinder {
             // then we will use it to compute its children, thus its call sites
             CallSites root = new CallSites(null, sootMethod);
             // compute its children, thus its call sites
-            callSitesTree = new MultiTree<>(computeCallSites(new MultiTree.Node<>(root), 0));
+            callSitesTree = new MultiTree<>(computeCallSitesRoot(new MultiTree.Node<>(root), 0));
         } catch (Exception e) {
-            logger.w("Cannot find `" + model.getApi().getSignature() + "`");
             callSitesTree = null;
         }
 
@@ -238,28 +236,18 @@ public class PFinder extends AbstractFinder {
         return result;
     }
 
-    // computeCallSites computes all call sites of calleeNode, thus find all its children,
+    // computeCallSitesRoot computes all call sites of calleeNode, thus find all its children,
     // this is not a pure function, because calleeNode will be added its children
-    private MultiTree.Node<CallSites> computeCallSites(MultiTree.Node<CallSites> calleeNode, int level) {
+    private MultiTree.Node<CallSites> computeCallSitesRoot(MultiTree.Node<CallSites> calleeNode, int level) {
         if (null == calleeNode || null == calleeNode.getData()) { return null; }
 
-        CallGraph  callGraph = Scene.v().getCallGraph();
-        SootMethod callee    = calleeNode.getData().getCaller();
+        SootMethod callee = calleeNode.getData().getCaller();
 
         // we firstly clarify all its call sites by the caller method
-        Iterator<Edge>             edgeIterator = callGraph.edgesInto(callee);
-        Map<SootMethod, CallSites> callers      = new HashMap<>(1);
-        while (edgeIterator.hasNext()) {
-            Edge       edge     = edgeIterator.next();
-            SootMethod caller   = edge.src();
-            Unit       callSite = edge.srcUnit();
-
-            if (callers.containsKey(caller)) {
-                callers.get(caller).addCallSite(callSite);
-            } else {
-                callers.put(caller, new CallSites(callee, caller, callSite));
-            }
-        }
+        Map<SootMethod, CallSites> callers = Soots.findCallSites(
+                callee,
+                Scene.v().getCallGraph(),
+                Scene.v().getClasses());
 
         // then we create a node for each caller method, and compute its call sites if necessary
         for (Map.Entry<SootMethod, CallSites> entry : callers.entrySet()) {
@@ -267,7 +255,7 @@ public class PFinder extends AbstractFinder {
 
             // computing done until the K-INDIRECT-CALLER
             if (level < Env.ENV_K_INDIRECT_CALLER) {
-                computeCallSites(callSitesNode, level + 1);
+                computeCallSitesRoot(callSitesNode, level + 1);
             }
 
             calleeNode.addChild(callSitesNode);
@@ -292,11 +280,11 @@ public class PFinder extends AbstractFinder {
         Map<Object, Set<Unit>> slice = new HashMap<>();
 
         // 1. get the corresponding pdg, which describes the unit's method
-        ProgramDependenceGraph pdg = this.container.getEnvironment().getPDG(caller.getSignature());
+        ProgramDependenceGraph pdg = new HashMutablePDG(new BriefUnitGraph(caller.getActiveBody()));
 
         // 2. find the dependents of callerUnit
         if (pdg != null) {
-            slice.put(0, Soots.findDependentOf(pdg, callerUnit));
+            slice.put(0, Soots.findInternalBackwardSlicing(callerUnit, pdg));
         } else {
             slice.put(0, new HashSet<>());
         }
@@ -508,12 +496,8 @@ public class PFinder extends AbstractFinder {
     }
 
     private boolean canHandleNonDeviceSpecificIssue_IfStmt_VariableConstantNot01(ApiContext model, Constant constant, AssignStmt defStmt) {
-        if (null != defStmt && canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(model, constant) &&
-                canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(model, defStmt)) {
-            return true;
-        }
-
-        return false;
+        return (null != defStmt && canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(model, constant) &&
+                canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(model, defStmt));
     }
 
     private boolean canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(ApiContext model, Constant constant) {
@@ -555,14 +539,10 @@ public class PFinder extends AbstractFinder {
     }
 
     private boolean canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings_Checking(ApiContext model, String s) {
-        if ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
-                (Strings.containsIgnoreCase(s,
+        return ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
+                 Strings.containsIgnoreCase(s,
                         "android.os.Build$VERSION: int SDK_INT",
-                        "android.os.Build$VERSION: java.lang.String SDK"))) {
-            return true;
-        }
-
-        return false;
+                        "android.os.Build$VERSION: java.lang.String SDK"));
     }
 
     // searchIssuesInCallSitesNode recursively searches issues of a call sites node

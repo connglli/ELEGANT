@@ -1,11 +1,9 @@
 package com.example.ficfinder.finder.reflectionfinder;
 
 import com.example.ficfinder.Container;
-import com.example.ficfinder.finder.Env;
 import com.example.ficfinder.finder.AbstractFinder;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
-import com.example.ficfinder.tracker.Tracker;
 import com.example.ficfinder.utils.Logger;
 import com.example.ficfinder.utils.Soots;
 import com.example.ficfinder.utils.Strings;
@@ -24,13 +22,10 @@ public class RFinder extends AbstractFinder {
     // REFLECTION_GET_METHOD_SIGNATURE is the soot signature of class.getMethod
     private static String REFLECTION_GET_METHOD_SIGNATURE =
             "<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>";
-
     // edges stores all edges calling into REFLECTION_GET_METHOD_SIGNATURE
     private Set<Edge> edges;
-
     // detectedEdges stores detected edges in the detection phase, which will be processed in
     private Set<Edge> detectedEdges;
-
     // validatedEdges stores all validated edges in validation phase, that will be emitted in generation phase
     private Set<Edge> validatedEdges;
 

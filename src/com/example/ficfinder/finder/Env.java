@@ -11,7 +11,8 @@ import com.sun.istack.internal.NotNull;
 import soot.G;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
-import soot.toolkits.graph.pdg.ProgramDependenceGraph;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
+import soot.jimple.infoflow.solver.cfg.InfoflowCFG;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,19 +24,15 @@ public class Env implements PubSub.Handle {
 
     // Arguments
 
-    public static final String ARG_MODELS = "models";
-
-    public static final String ARG_APK = "apk";
-
-    public static final String ARG_PLATFORMS = "platforms";
-
+    public static final String ARG_MODELS            = "models";
+    public static final String ARG_APK               = "apk";
+    public static final String ARG_PLATFORMS         = "platforms";
     public static final String ARG_SOURCES_AND_SINKS = "sourcesAndSinks";
 
     // Environment variable of FicFinder
 
     // k neighbors, used in backward slicing
     public static final int ENV_K_NEIGHBORS = 5;
-
     // k-indirect-caller, used in call site computing
     // 0-indirect-caller is its direct caller
     public static final int ENV_K_INDIRECT_CALLER = 1;
@@ -44,12 +41,9 @@ public class Env implements PubSub.Handle {
 
     // container is the container that Env is in
     private Container container;
-
     // default soot settings
     private String androidPlatformsPath = "assets/android-platforms";
-
     private String sourcesAndSinksTextPath = "assets/SourcesAndSinks.txt";
-
     private String[] options = {
             // general options
             "-whole-program",
@@ -71,18 +65,13 @@ public class Env implements PubSub.Handle {
     };
 
     // soot-analysed results
-
     private SetupApplication app;
-
     private ProcessManifest manifest;
-
     private Set<ApiContext> models;
-
-    private Map<String, ProgramDependenceGraph> pdgMapping;
+    private IInfoflowCFG interproceduralCFG;
 
     public Env(Container container) {
         this.container = container;
-        this.pdgMapping = new HashMap<>();
 
         // do some registration work, Env need to get arguments throwed by configurations
         this.container.getConfigurations().subscribe(this);
@@ -104,12 +93,8 @@ public class Env implements PubSub.Handle {
         return models;
     }
 
-    public ProgramDependenceGraph getPDG(String method) {
-        return pdgMapping.get(method);
-    }
-
-    public void setPDG(String method, ProgramDependenceGraph pdg) {
-        this.pdgMapping.put(method, pdg);
+    public IInfoflowCFG getInterproceduralCFG() {
+        return interproceduralCFG == null ? (interproceduralCFG = new InfoflowCFG()) : interproceduralCFG;
     }
 
     /**
@@ -147,7 +132,7 @@ public class Env implements PubSub.Handle {
         }
     }
 
-
+    // parseModels will parse the argument ARG_MODELS
     private void parseModels(@NotNull String filePath) {
         File f = new File(filePath);
 
@@ -171,6 +156,7 @@ public class Env implements PubSub.Handle {
         }
     }
 
+    // parseModels will parse the argument ARG_APK
     private void parseApk(@NotNull String apkPath) {
         try {
             if (!apkPath.endsWith(".apk")) {
@@ -195,6 +181,7 @@ public class Env implements PubSub.Handle {
         }
     }
 
+    // parseModels will parse the argument ARG_PLATFORMS
     private void parsePlatforms(@NotNull String platformsPath) {
         this.androidPlatformsPath = platformsPath;
         this.options[6] = androidPlatformsPath; // TODO: 6 should not be hard coded
@@ -203,6 +190,7 @@ public class Env implements PubSub.Handle {
         }
     }
 
+    // parseModels will parse the argument ARG_SOURCES_AND_SINKS
     private void parseSourcesAndSinks(@NotNull String sourcesAndSinksTextPath) {
         this.sourcesAndSinksTextPath = sourcesAndSinksTextPath;
         if (this.app != null) {

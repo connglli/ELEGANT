@@ -27,12 +27,10 @@ public class PIssue extends Issue implements Cloneable {
     }
 
     public static class CallerPoint {
+
         private String srcFile;
-
         private int startLineNumber;
-
         private int startColumnNumber;
-
         private String method;
 
         public CallerPoint(String srcFile,
@@ -109,9 +107,7 @@ public class PIssue extends Issue implements Cloneable {
     @Override
     public Object clone() throws CloneNotSupportedException {
         PIssue newPIssue = (PIssue) super.clone();
-
         newPIssue.callerPoints = (List<CallerPoint>) ((LinkedList)this.callerPoints).clone();
-
         return newPIssue;
     }
 
