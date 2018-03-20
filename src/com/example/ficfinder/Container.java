@@ -11,8 +11,8 @@ public class Container {
 
     private ConfigParser configurations;
     private Tracker tracker;
-    private Finder finder;
 
+    private Finder finder;
     private Env environment;
 
     {

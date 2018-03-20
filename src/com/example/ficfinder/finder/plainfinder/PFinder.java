@@ -247,7 +247,8 @@ public class PFinder extends AbstractFinder {
         Map<SootMethod, CallSites> callers = Soots.findCallSites(
                 callee,
                 Scene.v().getCallGraph(),
-                Scene.v().getClasses());
+                Scene.v().getClasses(),
+                Arrays.asList(this.container.getEnvironment().getAppPackage()));
 
         // then we create a node for each caller method, and compute its call sites if necessary
         for (Map.Entry<SootMethod, CallSites> entry : callers.entrySet()) {

@@ -254,13 +254,15 @@ public class Soots {
     public static Map<SootMethod, CallSites> findCallSites(
             SootMethod callee,
             CallGraph cg,
-            Chain<SootClass> classes) {
+            Chain<SootClass> classes,
+            List<String> pkgs) {
         // firstly, we traverse each soot method's body, caches the invoking statements
         if (invokingStmtsCache.isEmpty()) {
             for (SootClass c : classes) {
                 // skip android and java libraries
-                if (c.getJavaPackageName().startsWith("android")) { continue; }
-                if (c.getJavaPackageName().startsWith("java")) { continue; }
+                boolean doAnalysis = false;
+                for (String s : pkgs) { if (c.getJavaPackageName().startsWith(s)) { doAnalysis = true; break; } }
+                if (!doAnalysis) { continue; }
 
                 for (SootMethod m : c.getMethods()) {
                     try {

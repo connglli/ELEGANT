@@ -47,7 +47,7 @@ public abstract class AbstractFinder {
     public abstract void generate(ApiContext model);
 
     /**
-     * find will find and report all validated bugs in the routine:
+     * analyse will find and report all validated bugs in the routine:
      *
      * algorithm:
      *   for each model m in model list do
@@ -57,7 +57,7 @@ public abstract class AbstractFinder {
      *   done
      *
      */
-    public void report() {
+    public void analyse() {
         this.models.forEach(model -> {
             if (detect(model) && validate(model)) {
                 generate(model);

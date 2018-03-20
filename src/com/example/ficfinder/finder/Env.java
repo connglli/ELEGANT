@@ -97,6 +97,14 @@ public class Env implements PubSub.Handle {
         return interproceduralCFG == null ? (interproceduralCFG = new InfoflowCFG()) : interproceduralCFG;
     }
 
+    public String getAppName() {
+        return this.manifest.getApplicationName();
+    }
+
+    public String getAppPackage() {
+        return this.manifest.getPackageName();
+    }
+
     /**
      * Emit an issue to Tracker
      *

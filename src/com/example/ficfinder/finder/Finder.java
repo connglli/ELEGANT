@@ -35,7 +35,6 @@ public class Finder {
 
         // load classes
         Scene.v().loadNecessaryClasses();
-        Scene.v().loadBasicClasses();
 
         // fake main created by flowdroid
         SootMethod entryPoint = this.container.getEnvironment().getApp().getEntryPointCreator().createDummyMain();
@@ -53,11 +52,11 @@ public class Finder {
 
         // vanilla checking
         AbstractFinder plainFinder = new PFinder(container, models);
-        plainFinder.report();
+        plainFinder.analyse();
 
         // reflection checking
         AbstractFinder reflectionFinder = new RFinder(container, models);
-        reflectionFinder.report();
+        reflectionFinder.analyse();
     }
 
 }
