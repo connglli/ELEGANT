@@ -8,6 +8,7 @@ import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.toolkits.graph.*;
+import soot.toolkits.graph.pdg.HashMutablePDG;
 import soot.toolkits.graph.pdg.IRegion;
 import soot.toolkits.graph.pdg.PDGNode;
 import soot.toolkits.graph.pdg.ProgramDependenceGraph;
@@ -34,7 +35,7 @@ public class Soots {
     public static Unit findLatestDefinition(@NotNull Value v, @NotNull Unit u, @NotNull SootMethod m) {
         if (!(u instanceof Stmt)) { return null; }
 
-        Unit       def = null;
+        Unit       def   = null;
         List<Unit> units = new ArrayList<>(m.getActiveBody().getUnits());
         int        index = units.indexOf(u);
 
@@ -68,26 +69,30 @@ public class Soots {
     public static Set<Unit> findPreviousDefinitions(@NotNull Value v, @NotNull Unit u, @NotNull SootMethod m) {
         if (!(u instanceof Stmt)) { return new HashSet<>(); }
 
-        Set<Unit>  defs  = new HashSet<>();
-        List<Unit> units = new ArrayList<>(m.getActiveBody().getUnits());
-        int        index = units.indexOf(u);
+        try {
+            Set<Unit>  defs  = new HashSet<>();
+            List<Unit> units = new ArrayList<>(m.getActiveBody().getUnits());
+            int        index = units.indexOf(u);
 
-        if (index != -1) {
-            for (int i = index - 1; i >= 0; i --) {
-                Stmt s = (Stmt) units.get(i);
-                if (s instanceof IdentityStmt || s instanceof AssignStmt) {
-                    try {
-                        if (v.equals(s.getDefBoxes().get(0).getValue())) {
-                            defs.add(s);
+            if (index != -1) {
+                for (int i = index - 1; i >= 0; i --) {
+                    Stmt s = (Stmt) units.get(i);
+                    if (s instanceof IdentityStmt || s instanceof AssignStmt) {
+                        try {
+                            if (v.equals(s.getDefBoxes().get(0).getValue())) {
+                                defs.add(s);
+                            }
+                        } catch (NullPointerException e) {
+                            // do nothing
                         }
-                    } catch (NullPointerException e) {
-                        // do nothing
                     }
                 }
             }
-        }
 
-        return defs;
+            return defs;
+        } catch (Exception e) {
+            return new HashSet<>();
+        }
     }
 
     /**
@@ -173,10 +178,14 @@ public class Soots {
      * @return
      */
     public static Set<Unit> findDominators(Unit u, IInfoflowCFG icfg) {
-        SootMethod method = icfg.getMethodOf(u);
-        DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(method);
-        MHGDominatorsFinder<Unit> mhgDominatorsFinder = new MHGDominatorsFinder<>(graph);
-        return new HashSet<>(mhgDominatorsFinder.getDominators(u));
+        try {
+            SootMethod method = icfg.getMethodOf(u);
+            DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(method);
+            MHGDominatorsFinder<Unit> mhgDominatorsFinder = new MHGDominatorsFinder<>(graph);
+            return new HashSet<>(mhgDominatorsFinder.getDominators(u));
+        } catch (Exception e) {
+            return new HashSet<>();
+        }
     }
 
     /**
@@ -237,6 +246,16 @@ public class Soots {
 
         // 2. control-flow dependencies
         backwardSlicing.addAll(findDominators(u, icfg));
+
+        // 3. we use the built-in backward slicing to get the intra-procedural backward slicing
+        try {
+            backwardSlicing.addAll(
+                    findInternalBackwardSlicing(
+                            u,
+                            new HashMutablePDG(new BriefUnitGraph(icfg.getMethodOf(u).getActiveBody()))));
+        } catch (Exception e) {
+            // do nothing here
+        }
 
         return backwardSlicing;
     }
@@ -386,7 +405,7 @@ public class Soots {
                         for (Unit callSite : entry.getValue().getCallSites()) {
                             assert callSite instanceof Stmt && ((Stmt) callSite).containsInvokeExpr();
                             Value      trackedArg    = ((Stmt) callSite).getInvokeExpr().getArg(argIdx);
-                            Set<Value> untrackedArgs = new HashSet<>(((InvokeStmt) callSite).getInvokeExpr().getArgs());
+                            Set<Value> untrackedArgs = new HashSet<>(((Stmt) callSite).getInvokeExpr().getArgs());
                             untrackedArgs.remove(trackedArg);
                             ret.addAll(findBackwardDataDependenciesExcept(callSite, entry.getKey(), cg, untrackedArgs));
                         }

@@ -12,9 +12,8 @@ import com.example.ficfinder.utils.Soots;
 import com.example.ficfinder.utils.Strings;
 import soot.*;
 import soot.jimple.*;
-import soot.toolkits.graph.BriefUnitGraph;
-import soot.toolkits.graph.pdg.HashMutablePDG;
-import soot.toolkits.graph.pdg.ProgramDependenceGraph;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
+import soot.jimple.toolkits.callgraph.CallGraph;
 
 import java.util.*;
 
@@ -146,6 +145,9 @@ public class PFinder extends AbstractFinder {
             return false;
         }
 
+        CallGraph    cg   = this.container.getEnvironment().getCallGraph();
+        IInfoflowCFG icfg = this.container.getEnvironment().getInterproceduralCFG();
+
         List<MultiTree.Node<CallSites>> nodesToBeCut     = new ArrayList<>();
         List<Unit>                      callSitesToBeCut = new ArrayList<>();
         SootMethod                      caller           = null;
@@ -171,10 +173,9 @@ public class PFinder extends AbstractFinder {
             callSitesToBeCut.clear();
 
             for (Unit callSite : callSites) {
-                Map<Object, Set<Unit>>            slicing         = runBackwardSlicingFor(caller, callSite);
-                Set<Map.Entry<Object, Set<Unit>>> partialSlicings = slicing.entrySet();
-                for (Map.Entry<Object, Set<Unit>> partialSlicing : partialSlicings) {
-                    if (canHandleIssue(model, issueType, partialSlicing)) {
+                Set<Unit> slicing = Soots.findBackwardSlcing(callSite, cg, icfg);
+                for (Unit aSlicing : slicing) {
+                    if (canHandleIssue(model, issueType, aSlicing)) {
                         callSitesToBeCut.add(callSite);
                         break;
                     }
@@ -265,125 +266,18 @@ public class PFinder extends AbstractFinder {
         return calleeNode;
     }
 
-    /**
-     * runBackwardSlicingFor runs backward slicing algorithm.
-     *
-     * we find the backward slicing of a unit by:
-     *  1. get the corresponding pdg, which describes the unit's method
-     *  2. find the dependents of callerUnit
-     *  3. find the nearest IfStmt of the caller unit
-     *  4. find the dependents of IfStmt(which defines the variable used in IfStmt)
-     *
-     * @param caller
-     * @param callerUnit
-     */
-    private Map<Object, Set<Unit>> runBackwardSlicingFor(SootMethod caller, Unit callerUnit) {
-        Map<Object, Set<Unit>> slice = new HashMap<>();
-
-        // 1. get the corresponding pdg, which describes the unit's method
-        ProgramDependenceGraph pdg = new HashMutablePDG(new BriefUnitGraph(caller.getActiveBody()));
-
-        // 2. find the dependents of callerUnit
-        if (pdg != null) {
-            slice.put(0, Soots.findInternalBackwardSlicing(callerUnit, pdg));
-        } else {
-            slice.put(0, new HashSet<>());
-        }
-
-        // 3. find the nearest K IfStmt of the caller unit
-        List<Unit>                         unitsOfCaller     = new ArrayList<>(caller.getActiveBody().getUnits());
-        List<Map.Entry<Integer, Unit>>     kIfStmtNeightbors = findKNeighbors(unitsOfCaller, callerUnit);
-        Iterator<Map.Entry<Integer, Unit>> iterator          = kIfStmtNeightbors.iterator();
-
-        // 4. find the dependents of each IfStmt(which defines the variable used in IfStmt)
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Unit> entry  = iterator.next();
-            int                      ifIdx  = entry.getKey();
-            Unit                     ifUnit = entry.getValue();
-
-            if (ifUnit != null) {
-                IfStmt ifStmt = (IfStmt) ifUnit;
-                slice.put(ifStmt, new HashSet<>());
-                // get use boxes, e.g. [$v1, $v2] of `if $v1 > $v2 goto label 0`
-                // we assume here that, an IfStmt will use only two values
-                Value leftV  = null;
-                Value rightV = null;
-
-                try {
-                    leftV = ifStmt.getCondition().getUseBoxes().get(0).getValue();
-                } catch (Exception e) {
-                    leftV = null;
-                }
-
-                try {
-                    rightV = ifStmt.getCondition().getUseBoxes().get(1).getValue();
-                } catch (Exception e) {
-                    rightV = null;
-                }
-
-                // traverse to find the definition of them
-                for (int i = ifIdx - 1; i >= 0; i --) {
-                    Unit u = unitsOfCaller.get(i);
-                    // $vx = ...
-                    if (u instanceof AssignStmt) {
-                        AssignStmt assignStmt = (AssignStmt) u;
-                        List<ValueBox> defBoxesOfAssignUnit = assignStmt.getDefBoxes();
-                        // check whether $vx in useBoxesOfIfUnit, if yes, then add it to slice
-                        for (ValueBox vb : defBoxesOfAssignUnit) {
-                            if (vb.getValue() instanceof Local &&
-                                    (vb.getValue().equals(leftV) || vb.getValue().equals(rightV))) {
-                                slice.get(ifStmt).add(assignStmt);
-                                if (((AssignStmt) u).containsInvokeExpr()) {
-                                    try {
-                                        slice.get(0).addAll(((AssignStmt) u).getInvokeExpr().getMethod().getActiveBody().getUnits());
-                                    } catch (Exception e) {
-                                        // do nothing, for those without an active body
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return slice;
-    }
-
-    // findKNeighbors finds K IfStmt neighbors
-    private List<Map.Entry<Integer, Unit>> findKNeighbors(List<Unit> unitsOfCaller, Unit callerUnit) {
-        LinkedList<Map.Entry<Integer, Unit>> queue = new LinkedList<>();
-
-        for (int i = 0; i < unitsOfCaller.size(); i ++) {
-            Unit u = unitsOfCaller.get(i);
-
-            // stop here
-            if (u.equals(callerUnit)) { break; }
-
-            // add to queue
-            if (u instanceof IfStmt) {
-                if (queue.size() == Env.ENV_K_NEIGHBORS) {
-                    queue.poll();
-                }
-                queue.offer(new HashMap.SimpleEntry<>(i, u));
-            }
-        }
-
-        return queue;
-    }
-
     // canHandleIssue checks whether the stmt can handle the specific issue
-    private boolean canHandleIssue(ApiContext model, int issueType, Map.Entry<Object, Set<Unit>> partialSlicing) {
+    private boolean canHandleIssue(ApiContext model, int issueType, Unit aSlicing) {
         switch (issueType) {
             case NO_FIC_ISSUES:
                 return true;
             case NON_DEVICE_SPECIFIC_FIC_ISSUE:
-                return canHandleNonDeviceSpecificIssue(model, partialSlicing);
+                return canHandleNonDeviceSpecificIssue(model, aSlicing);
             case DEVICE_SPECIFIC_FIC_ISSUE:
-                return canHandleDeviceSpecificIssue(model, partialSlicing);
+                return canHandleDeviceSpecificIssue(model, aSlicing);
             case BOTH_FIC_ISSUE:
-                return canHandleDeviceSpecificIssue(model, partialSlicing) &&
-                        canHandleNonDeviceSpecificIssue(model, partialSlicing);
+                return canHandleDeviceSpecificIssue(model, aSlicing) &&
+                        canHandleNonDeviceSpecificIssue(model, aSlicing);
             default:
                 logger.w("Illegal issue type " + issueType);
                 return false;
@@ -391,23 +285,20 @@ public class PFinder extends AbstractFinder {
     }
 
     // canHandleDeviceSpecificIssue checks whether the stmt can handle the device specific issue
-    private boolean canHandleDeviceSpecificIssue(ApiContext model, Map.Entry<Object, Set<Unit>> partialSlicing) {
-        Set<Unit> slicing = partialSlicing.getValue();
+    private boolean canHandleDeviceSpecificIssue(ApiContext model, Unit aSlicing) {
         String[]  devices = model.getContext().getBadDevices();
 
-        for (Unit u : slicing) {
-            String us = u.toString();
-            if (Strings.contains(us,
-                    "android.os.Build: java.lang.String BOARD",
-                    "android.os.Build: java.lang.String BRAND",
-                    "android.os.Build: java.lang.String DEVICE",
-                    "android.os.Build: java.lang.String PRODUCT")) {
-                return true;
-            } else {
-                for (String device : devices) {
-                    if (us.contains(device)) {
-                        return true;
-                    }
+        String s = aSlicing.toString();
+        if (Strings.contains(s,
+                "android.os.Build: java.lang.String BOARD",
+                "android.os.Build: java.lang.String BRAND",
+                "android.os.Build: java.lang.String DEVICE",
+                "android.os.Build: java.lang.String PRODUCT")) {
+            return true;
+        } else {
+            for (String device : devices) {
+                if (s.contains(device)) {
+                    return true;
                 }
             }
         }
@@ -416,134 +307,12 @@ public class PFinder extends AbstractFinder {
     }
 
     // canHandleNonDeviceSpecificIssue checks whether the stmt can handle the non device specific issue
-    private boolean canHandleNonDeviceSpecificIssue(ApiContext model, Map.Entry<Object, Set<Unit>> partialSlicing) {
-        Object    key     = partialSlicing.getKey();
-        Set<Unit> slicing = partialSlicing.getValue();
-
-        if (key instanceof IfStmt) {
-            // definitions of values used in if stmt
-            return canHandleNonDeviceSpecificIssue_IfStmt(model, (IfStmt) key, slicing);
-        }
-
-        // slicing of common callsites
-        return canHandleNonDeviceSpecificIssue_Common(model, slicing);
-    }
-
-    // canHandleIssue_IfStmt checks whether the IfStmt s will fix the issue or not
-    private boolean canHandleNonDeviceSpecificIssue_IfStmt(ApiContext model, IfStmt s, Set<Unit> slicing) {
-        List<ValueBox> useBoxes = s.getCondition().getUseBoxes();
-        Value          leftV    = useBoxes.get(0).getValue();
-        Value          rightV   = useBoxes.get(1).getValue();
-
-        if (leftV instanceof Constant && rightV instanceof Local) {
-            Constant   c  = (Constant) leftV;
-            Local      v  = (Local) rightV;
-            AssignStmt as = slicing.iterator().hasNext() ? (AssignStmt) slicing.iterator().next() : null;
-
-            if ((c instanceof IntConstant) &&
-                    (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
-                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstant01(model, as)) {
-                return true;
-            } else if ((c instanceof IntConstant) &&
-                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstantNot01(model, c, as)) {
-                return true;
-            }
-        } else if (rightV instanceof Constant && leftV instanceof Local) {
-            Local      v  = (Local) leftV;
-            Constant   c  = (Constant) rightV;
-            AssignStmt as = slicing.iterator().hasNext() ? (AssignStmt) slicing.iterator().next() : null;
-
-            if ((c instanceof IntConstant) &&
-                    (((IntConstant)c).value == 0 || ((IntConstant)c).value == 1) &&
-                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstant01(model, as)) {
-                return true;
-            } else if ((c instanceof IntConstant) &&
-                    canHandleNonDeviceSpecificIssue_IfStmt_VariableConstantNot01(model, c, as)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    // canHandleIssue_IfStmt checks whether the other Stmt s contained in the slicing will fix the issue or not
-    private boolean canHandleNonDeviceSpecificIssue_Common(ApiContext model, Set<Unit> slicing) {
-        for (Unit unit : slicing) {
-            // we only parse Jimple
-            if (!(unit instanceof AssignStmt)) {
-                return false;
-            }
-
-            if (canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(model, (AssignStmt) unit)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean canHandleNonDeviceSpecificIssue_IfStmt_VariableConstant01(ApiContext model, AssignStmt defStmt) {
-        if (null != defStmt && defStmt.containsInvokeExpr()) {
-            InvokeExpr invokeExpr = defStmt.getInvokeExpr();
-            List<Value> values = invokeExpr.getArgs();
-            for (Value value : values) {
-                if (value instanceof Constant && canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(model, (Constant) value)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean canHandleNonDeviceSpecificIssue_IfStmt_VariableConstantNot01(ApiContext model, Constant constant, AssignStmt defStmt) {
-        return (null != defStmt && canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(model, constant) &&
-                canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(model, defStmt));
-    }
-
-    private boolean canHandleNonDeviceSpecificIssue_IfStmt_ArgMatchApiContext(ApiContext model, Constant constant) {
-        if (constant instanceof IntConstant) {
-            int sdkInt = ((IntConstant) constant).value;
-            return model.getContext().getMinApiLevel() <= sdkInt && sdkInt <= model.getContext().getMaxApiLevel();
-        } else if (constant instanceof FloatConstant) {
-            float sysVer = ((FloatConstant) constant).value;
-            return model.getContext().getMinSystemVersion() <= sysVer && sysVer <= model.getContext().getMaxSystemVersion();
-        }
-
-        return false;
-    }
-
-    private boolean canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings(ApiContext model, AssignStmt stmt) {
-        try {
-            // if the state contains a method, we assume that most develops won't check api just using 1+ method invoking.
-            if (stmt.containsInvokeExpr()) {
-                if (canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings_Checking(
-                        model, stmt.getInvokeExpr().getMethod().getActiveBody().toString())) {
-                    return true;
-                }
-            }
-
-            // check use boxes
-            List<ValueBox> useValueBoxes = stmt.getUseBoxes();
-
-            for (ValueBox vb : useValueBoxes) {
-                if (canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings_Checking(
-                        model, vb.getValue().toString())) {
-                    return true;
-                }
-            }
-
-            return false;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private boolean canHandleNonDeviceSpecificIssue_Common_UnitContainsSpecStrings_Checking(ApiContext model, String s) {
-        return ((model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
-                 Strings.containsIgnoreCase(s,
+    private boolean canHandleNonDeviceSpecificIssue(ApiContext model, Unit aSlicing) {
+        return (aSlicing instanceof Stmt) &&
+               (model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
+                Strings.containsIgnoreCase(aSlicing.toString(),
                         "android.os.Build$VERSION: int SDK_INT",
-                        "android.os.Build$VERSION: java.lang.String SDK"));
+                        "android.os.Build$VERSION: java.lang.String SDK");
     }
 
     // searchIssuesInCallSitesNode recursively searches issues of a call sites node
@@ -562,7 +331,6 @@ public class PFinder extends AbstractFinder {
                     u.getJavaSourceStartColumnNumber(),
                     caller.getSignature()));
         });
-
 
         if (0 == n.getChildren().size()) {
             callerPoints.forEach(si -> {

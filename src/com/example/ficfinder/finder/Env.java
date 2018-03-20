@@ -9,10 +9,12 @@ import com.example.ficfinder.tracker.Issue;
 import com.example.ficfinder.tracker.PubSub;
 import com.sun.istack.internal.NotNull;
 import soot.G;
+import soot.Scene;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.solver.cfg.InfoflowCFG;
+import soot.jimple.toolkits.callgraph.CallGraph;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -95,6 +97,10 @@ public class Env implements PubSub.Handle {
 
     public IInfoflowCFG getInterproceduralCFG() {
         return interproceduralCFG == null ? (interproceduralCFG = new InfoflowCFG()) : interproceduralCFG;
+    }
+
+    public CallGraph getCallGraph() {
+        return Scene.v().getCallGraph();
     }
 
     public String getAppName() {
