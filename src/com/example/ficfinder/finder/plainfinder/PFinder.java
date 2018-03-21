@@ -308,11 +308,31 @@ public class PFinder extends AbstractFinder {
 
     // canHandleNonDeviceSpecificIssue checks whether the stmt can handle the non device specific issue
     private boolean canHandleNonDeviceSpecificIssue(ApiContext model, Unit aSlicing) {
-        return (aSlicing instanceof Stmt) &&
-               (model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
-                Strings.containsIgnoreCase(aSlicing.toString(),
-                        "android.os.Build$VERSION: int SDK_INT",
-                        "android.os.Build$VERSION: java.lang.String SDK");
+        if (!(aSlicing instanceof Stmt)) {
+            return false;
+        }
+
+        // developers may use a function to check api, in this case, we only consider 1-depth invoking
+        if (((Stmt) aSlicing).containsInvokeExpr()) {
+            try {
+                List<Unit> units = new ArrayList<>(((Stmt) aSlicing).getInvokeExpr().getMethod().getActiveBody().getUnits());
+                for (Unit u : units) {
+                    if (!(u instanceof Stmt)) { continue; }
+                    if (((Stmt) u).containsInvokeExpr()) { continue; }
+                    if (canHandleNonDeviceSpecificIssue(model, u)) { return true; }
+                }
+                return false;
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            return (aSlicing instanceof Stmt) &&
+                    (model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
+                    Strings.containsIgnoreCase(aSlicing.toString(),
+                            "android.os.Build$VERSION: int SDK_INT",
+                            "android.os.Build$VERSION: java.lang.String SDK");
+        }
+
     }
 
     // searchIssuesInCallSitesNode recursively searches issues of a call sites node
