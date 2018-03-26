@@ -1,7 +1,8 @@
-package com.example.ficfinder.finder.plainfinder;
+package com.example.ficfinder.core.finder.plainfinder;
 
 import com.example.ficfinder.models.ApiContext;
-import com.example.ficfinder.tracker.Issue;
+import com.example.ficfinder.core.finder.Issue;
+import com.example.ficfinder.utils.CallPoint;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -26,58 +27,19 @@ public class PIssue extends Issue implements Cloneable {
 
     }
 
-    public static class CallerPoint {
-
-        private String srcFile;
-        private int startLineNumber;
-        private int startColumnNumber;
-        private String method;
+    // a delegate of CallPoint
+    public static class CallerPoint extends CallPoint {
 
         public CallerPoint(String srcFile,
                            int startLineNumber,
                            int startColumnNumber,
                            String method) {
-            this.srcFile = srcFile;
-            this.startLineNumber = startLineNumber;
-            this.startColumnNumber = startColumnNumber;
-            this.method = method;
+            super(srcFile, startLineNumber, startColumnNumber, method);
         }
 
-        public String getSrcFile() {
-            return srcFile;
-        }
-
-        public void setSrcFile(String srcFile) {
-            this.srcFile = srcFile;
-        }
-
-        public int getStartLineNumber() {
-            return startLineNumber;
-        }
-
-        public void setStartLineNumber(int startLineNumber) {
-            this.startLineNumber = startLineNumber;
-        }
-
-        public int getStartColumnNumber() {
-            return startColumnNumber;
-        }
-
-        public void setStartColumnNumber(int startColumnNumber) {
-            this.startColumnNumber = startColumnNumber;
-        }
-
-        public String getMethod() {
-            return method;
-        }
-
-        public void setMethod(String method) {
-            this.method = method;
-        }
     }
 
     private CalleePoint calleePoint;
-
     private List<CallerPoint> callerPoints = new LinkedList<>();
 
     public PIssue(ApiContext model) {

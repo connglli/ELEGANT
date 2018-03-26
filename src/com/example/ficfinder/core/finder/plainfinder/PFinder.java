@@ -1,9 +1,9 @@
-package com.example.ficfinder.finder.plainfinder;
+package com.example.ficfinder.core.finder.plainfinder;
 
 import com.example.ficfinder.Container;
-import com.example.ficfinder.finder.Env;
-import com.example.ficfinder.finder.AbstractFinder;
-import com.example.ficfinder.finder.CallSites;
+import com.example.ficfinder.core.environment.Environment;
+import com.example.ficfinder.core.finder.AbstractFinder;
+import com.example.ficfinder.core.finder.CallSites;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.utils.Logger;
@@ -29,7 +29,7 @@ import java.util.*;
  *     callSitesTree = prune_Tree(callSitesTree, model)  # pruning
  *     issues = genPathes_Tree(callSitesTree, model)     # generating
  *
- *     emit all issues
+ *     emitIssue all issues
  *   done
  *
  *   function create_Tree(callgraph, api) {
@@ -105,13 +105,13 @@ public class PFinder extends AbstractFinder {
     }
 
     @Override
-    public void setUp() {
-        this.container.getTracker().subscribe(new PIssueHandle());
+    protected void setUp() {
+        this.container.watchIssues(new PIssueHandle(this.container));
     }
 
     // We will use create_Tree in detection phase
     @Override
-    public boolean detect(ApiContext model) {
+    protected boolean detect(ApiContext model) {
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -140,13 +140,13 @@ public class PFinder extends AbstractFinder {
 
     // We will use prune_Tree in validation phase
     @Override
-    public boolean validate(ApiContext model) {
+    protected boolean validate(ApiContext model) {
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
 
-        CallGraph    cg   = this.container.getEnvironment().getCallGraph();
-        IInfoflowCFG icfg = this.container.getEnvironment().getInterproceduralCFG();
+        CallGraph    cg   = this.container.getCallGraph();
+        IInfoflowCFG icfg = this.container.getInterproceduralCFG();
 
         List<MultiTree.Node<CallSites>> nodesToBeCut     = new ArrayList<>();
         List<Unit>                      callSitesToBeCut = new ArrayList<>();
@@ -209,7 +209,7 @@ public class PFinder extends AbstractFinder {
 
     // We will use genPathes_Tree in generation phase
     @Override
-    public void generate(ApiContext model) {
+    protected void generate(ApiContext model) {
         if (!(model.getApi() instanceof ApiMethod)) {
             return;
         }
@@ -218,21 +218,21 @@ public class PFinder extends AbstractFinder {
         List<PIssue> pIssues = this.searchIssuesInCallSitesNode(
                 callSitesTree.getRoot(), callSitesTree.getRoot(), model);
 
-        // emit the issues found
-        pIssues.forEach(i -> this.container.getEnvironment().emit(i));
+        // emitIssue the issues found
+        pIssues.forEach(i -> this.container.emitIssue(i));
     }
 
     // ficIssueGetType checks whether the call site is ficable i.e. may generate FIC issues
     private int ficIssueGetType(ApiContext model) {
         // compiled sdk version, used to check whether an api
         // is accessible or not
-        final int targetSdk = this.container.getEnvironment().getManifest().targetSdkVersion();
-        final int minSdk    = this.container.getEnvironment().getManifest().getMinSdkVersion();
+        final int targetSdk = this.container.getManifest().targetSdkVersion();
+        final int minSdk    = this.container.getManifest().getMinSdkVersion();
 
-        int result = 0;
+        int result = NO_FIC_ISSUES;
 
-        result |= model.hasBadDevices() ? DEVICE_SPECIFIC_FIC_ISSUE : 0;
-        result |= model.matchApiLevel(targetSdk, minSdk) ? 0 : NON_DEVICE_SPECIFIC_FIC_ISSUE;
+        result |= model.hasBadDevices() ? DEVICE_SPECIFIC_FIC_ISSUE : NO_FIC_ISSUES;
+        result |= model.matchApiLevel(targetSdk, minSdk) ? NO_FIC_ISSUES : NON_DEVICE_SPECIFIC_FIC_ISSUE;
 
         return result;
     }
@@ -249,14 +249,14 @@ public class PFinder extends AbstractFinder {
                 callee,
                 Scene.v().getCallGraph(),
                 Scene.v().getClasses(),
-                Arrays.asList(this.container.getEnvironment().getAppPackage()));
+                Arrays.asList(this.container.getAppPackage()));
 
         // then we create a node for each caller method, and compute its call sites if necessary
         for (Map.Entry<SootMethod, CallSites> entry : callers.entrySet()) {
             MultiTree.Node<CallSites> callSitesNode = new MultiTree.Node<>(entry.getValue());
 
             // computing done until the K-INDIRECT-CALLER
-            if (level < Env.ENV_K_INDIRECT_CALLER) {
+            if (level < Environment.ENV_K_INDIRECT_CALLER) {
                 computeCallSitesRoot(callSitesNode, level + 1);
             }
 
@@ -346,10 +346,10 @@ public class PFinder extends AbstractFinder {
 
         callSites.forEach(u -> {
             callerPoints.add(new PIssue.CallerPoint(
-                    "~",
+                    caller.getDeclaringClass().getName(),
                     u.getJavaSourceStartLineNumber(),
                     u.getJavaSourceStartColumnNumber(),
-                    caller.getSignature()));
+                    caller.getName()));
         });
 
         if (0 == n.getChildren().size()) {

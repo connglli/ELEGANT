@@ -1,4 +1,4 @@
-package com.example.ficfinder.finder;
+package com.example.ficfinder.core.finder;
 
 import com.example.ficfinder.Container;
 import com.example.ficfinder.models.ApiContext;
@@ -21,7 +21,7 @@ public abstract class AbstractFinder {
     /**
      * setUp allows you to do some setup works, such as initializations
      */
-    public void setUp() { }
+    protected void setUp() { }
 
     /**
      * detect will detect all potential bugs triggered by model
@@ -29,7 +29,7 @@ public abstract class AbstractFinder {
      * @param model api context model
      * @return      true for continuing to validate if detected, or false
      */
-    public abstract boolean detect(ApiContext model);
+    protected abstract boolean detect(ApiContext model);
 
     /**
      * validate will validate all potential bugs and remove others if detect returned true.
@@ -37,17 +37,17 @@ public abstract class AbstractFinder {
      * @param model api context model
      * @return      true for continue to generate, or false
      */
-    public abstract boolean validate(ApiContext model);
+    protected abstract boolean validate(ApiContext model);
 
     /**
      * generate will generate all validated bugs
      *
      * @param model api context model
      */
-    public abstract void generate(ApiContext model);
+    protected abstract void generate(ApiContext model);
 
     /**
-     * analyse will find and report all validated bugs in the routine:
+     * analyse will find and submit all validated bugs in the routine:
      *
      * algorithm:
      *   for each model m in model list do
@@ -59,7 +59,10 @@ public abstract class AbstractFinder {
      */
     public void analyse() {
         this.models.forEach(model -> {
-            if (detect(model) && validate(model)) {
+            // when this model has important field, then we skip the validate phase, generate them directly
+            if (detect(model) &&
+                    (model.isImportant()
+                            || validate(model))) {
                 generate(model);
             }
         });

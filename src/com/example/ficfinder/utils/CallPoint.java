@@ -1,22 +1,16 @@
-package com.example.ficfinder.finder.reflectionfinder;
+package com.example.ficfinder.utils;
 
-import com.example.ficfinder.models.ApiContext;
-import com.example.ficfinder.tracker.Issue;
-
-
-public class RIssue extends Issue {
+public class CallPoint {
 
     private String srcFile;
     private int startLineNumber;
     private int startColumnNumber;
     private String method;
 
-    public RIssue(ApiContext model,
-                  String srcFile,
-                  int startLineNumber,
-                  int startColumnNumber,
-                  String method) {
-        super(model);
+    public CallPoint(String srcFile,
+                       int startLineNumber,
+                       int startColumnNumber,
+                       String method) {
         this.srcFile = srcFile;
         this.startLineNumber = startLineNumber;
         this.startColumnNumber = startColumnNumber;
@@ -54,4 +48,5 @@ public class RIssue extends Issue {
     public void setMethod(String method) {
         this.method = method;
     }
+
 }

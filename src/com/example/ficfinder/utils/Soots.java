@@ -1,6 +1,6 @@
 package com.example.ficfinder.utils;
 
-import com.example.ficfinder.finder.CallSites;
+import com.example.ficfinder.core.finder.CallSites;
 import com.sun.istack.internal.NotNull;
 import soot.*;
 import soot.jimple.*;

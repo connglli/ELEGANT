@@ -1,17 +1,16 @@
 package com.example.ficfinder.models.context;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.example.ficfinder.utils.Strings;
 
 import java.io.Serializable;
 
 public class Context implements Serializable {
 
+    // some default values
     public static final int DEFAULT_MIN_API_LEVEL = 1;
-
     public static final int DEFAULT_MAX_API_LEVEL = 27; // TODO hard code, need to be extracted to a configuration file
-
     public static final double DEFAULT_MIN_SYSTEM_VERSION = 1;
-
     public static final double DEFAULT_MAX_SYSTEM_VERSITON = Double.MAX_VALUE;
 
     @JSONField(name = "min_api_level")
@@ -28,6 +27,12 @@ public class Context implements Serializable {
 
     @JSONField(name = "bad_devices")
     private String[] badDevices = {};
+
+    @JSONField(name = "message")
+    private String message = null;
+
+    @JSONField(name = "important")
+    private String important = null;
 
     public int getMinApiLevel() {
         return minApiLevel;
@@ -67,6 +72,32 @@ public class Context implements Serializable {
 
     public void setBadDevices(String[] badDevices) {
         this.badDevices = badDevices;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getImportant() {
+        return important;
+    }
+
+    public void setImportant(String important) {
+        this.important = important;
+    }
+
+    public boolean isImportant() {
+        try {
+            if (null == important) { return false; }
+            String t = Strings.underlineToCamel(important);
+            return null != Context.class.getDeclaredField(t).get(this);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return false;
+        }
     }
 
     @Override

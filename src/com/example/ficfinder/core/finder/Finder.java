@@ -1,9 +1,9 @@
-package com.example.ficfinder.finder;
+package com.example.ficfinder.core.finder;
 
 
 import com.example.ficfinder.Container;
-import com.example.ficfinder.finder.plainfinder.PFinder;
-import com.example.ficfinder.finder.reflectionfinder.RFinder;
+import com.example.ficfinder.core.finder.plainfinder.PFinder;
+import com.example.ficfinder.core.finder.reflectionfinder.RFinder;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.utils.Logger;
 import soot.*;
@@ -31,13 +31,13 @@ public class Finder {
         soot.G.reset();
 
         // parse options
-        Options.v().parse(this.container.getEnvironment().getOptions());
+        Options.v().parse(this.container.getOptions());
 
         // load classes
         Scene.v().loadNecessaryClasses();
 
         // fake main created by flowdroid
-        SootMethod entryPoint = this.container.getEnvironment().getApp().getEntryPointCreator().createDummyMain();
+        SootMethod entryPoint = this.container.getApp().getEntryPointCreator().createDummyMain();
         Options.v().set_main_class(entryPoint.getSignature());
         Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
 
@@ -48,7 +48,7 @@ public class Finder {
     }
 
     private void go() {
-        Set<ApiContext> models = this.container.getEnvironment().getModels();
+        Set<ApiContext> models = this.container.getModels();
 
         // vanilla checking
         AbstractFinder plainFinder = new PFinder(container, models);

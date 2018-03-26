@@ -1,4 +1,4 @@
-package com.example.ficfinder.finder;
+package com.example.ficfinder.core.finder;
 
 import soot.SootMethod;
 import soot.Unit;

@@ -1,12 +1,12 @@
-package com.example.ficfinder.finder;
+package com.example.ficfinder.core.environment;
 
 
 import com.alibaba.fastjson.JSON;
-import com.example.ficfinder.ConfigParser;
+import com.example.ficfinder.core.configurations.Parser;
 import com.example.ficfinder.Container;
 import com.example.ficfinder.models.ApiContext;
-import com.example.ficfinder.tracker.Issue;
-import com.example.ficfinder.tracker.PubSub;
+import com.example.ficfinder.utils.Logger;
+import com.example.ficfinder.utils.PubSub;
 import com.sun.istack.internal.NotNull;
 import soot.G;
 import soot.Scene;
@@ -16,36 +16,41 @@ import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.solver.cfg.InfoflowCFG;
 import soot.jimple.toolkits.callgraph.CallGraph;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
-public class Env implements PubSub.Handle {
+public class Environment implements PubSub.Handle {
+
+    private static Logger logger = new Logger(Environment.class);
 
     // Arguments
 
     public static final String ARG_MODELS            = "models";
     public static final String ARG_APK               = "apk";
+    public static final String ARG_OUTPUT            = "output";
     public static final String ARG_PLATFORMS         = "platforms";
     public static final String ARG_SOURCES_AND_SINKS = "sourcesAndSinks";
 
     // Environment variable of FicFinder
 
     // k neighbors, used in backward slicing
-    public static final int ENV_K_NEIGHBORS = 5;
+    public static final int ENV_K_NEIGHBORS = 10;
     // k-indirect-caller, used in call site computing
     // 0-indirect-caller is its direct caller
-    public static final int ENV_K_INDIRECT_CALLER = 1;
+    public static final int ENV_K_INDIRECT_CALLER = 5;
 
     // Environments
 
     // container is the container that Env is in
     private Container container;
-    // default soot settings
+
+    // some converted arguments
+    private Set<ApiContext> models;
+    private PrintStream output = System.out;
     private String androidPlatformsPath = "assets/android-platforms";
     private String sourcesAndSinksTextPath = "assets/SourcesAndSinks.txt";
+
+    // default soot settings
     private String[] options = {
             // general options
             "-whole-program",
@@ -69,14 +74,13 @@ public class Env implements PubSub.Handle {
     // soot-analysed results
     private SetupApplication app;
     private ProcessManifest manifest;
-    private Set<ApiContext> models;
     private IInfoflowCFG interproceduralCFG;
 
-    public Env(Container container) {
+    public Environment(Container container) {
         this.container = container;
 
         // do some registration work, Env need to get arguments throwed by configurations
-        this.container.getConfigurations().subscribe(this);
+        this.container.watchArgs(this);
     }
 
     public String[] getOptions() {
@@ -89,6 +93,10 @@ public class Env implements PubSub.Handle {
 
     public ProcessManifest getManifest() {
         return manifest;
+    }
+
+    public PrintStream getOutput() {
+        return output;
     }
 
     public Set<ApiContext> getModels() {
@@ -111,22 +119,13 @@ public class Env implements PubSub.Handle {
         return this.manifest.getPackageName();
     }
 
-    /**
-     * Emit an issue to Tracker
-     *
-     * @param issue
-     */
-    public void emit(Issue issue) {
-        container.getTracker().publish(issue);
-    }
-
     @Override
     public void handle(PubSub.Message message) {
-        if (!(message instanceof ConfigParser.Argument)) {
+        if (!(message instanceof Parser.Argument)) {
             return;
         }
 
-        ConfigParser.Argument argument = (ConfigParser.Argument) message;
+        Parser.Argument argument = (Parser.Argument) message;
 
         switch (argument.getKey()) {
             case ARG_MODELS:
@@ -134,6 +133,9 @@ public class Env implements PubSub.Handle {
                 break;
             case ARG_APK:
                 parseApk(argument.getValue());
+                break;
+            case ARG_OUTPUT:
+                parseOutput(argument.getValue());
                 break;
             case ARG_PLATFORMS:
                 parsePlatforms(argument.getValue());
@@ -195,12 +197,27 @@ public class Env implements PubSub.Handle {
         }
     }
 
+    private void parseOutput(@NotNull String filePath) {
+        try {
+            if ("stderr".equals(filePath)) {
+                this.output = System.err;
+            } else if ("stdout".equals(filePath)) {
+                this.output = System.out;
+            } else {
+                this.output = new PrintStream(filePath);
+            }
+        } catch (FileNotFoundException e) {
+            logger.w("file \"" + filePath + "\" not found");
+            this.output = System.out;
+        }
+    }
+
     // parseModels will parse the argument ARG_PLATFORMS
     private void parsePlatforms(@NotNull String platformsPath) {
         this.androidPlatformsPath = platformsPath;
         this.options[6] = androidPlatformsPath; // TODO: 6 should not be hard coded
         if (this.app != null) {
-            this.app = new SetupApplication(this.androidPlatformsPath, this.container.getConfigurations().getArg(ARG_APK));
+            this.app = new SetupApplication(this.androidPlatformsPath, this.container.getArg(ARG_APK));
         }
     }
 

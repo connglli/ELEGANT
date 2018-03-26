@@ -1,4 +1,7 @@
-package com.example.ficfinder.tracker;
+package com.example.ficfinder.core.tracker;
+
+import com.example.ficfinder.core.finder.Issue;
+import com.example.ficfinder.utils.PubSub;
 
 import java.util.LinkedList;
 import java.util.List;

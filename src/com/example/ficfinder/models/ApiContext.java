@@ -39,7 +39,7 @@ public class ApiContext {
     }
 
     public boolean hasBadDevices() {
-        return !Arrays.<String>asList(this.context.getBadDevices()).isEmpty();
+        return !Arrays.asList(this.context.getBadDevices()).isEmpty();
     }
 
     public boolean needCheckApiLevel() {
@@ -50,6 +50,10 @@ public class ApiContext {
     public boolean needCheckSystemVersion() {
         return context.getMaxSystemVersion() != Context.DEFAULT_MAX_SYSTEM_VERSITON
                 || context.getMinSystemVersion() != Context.DEFAULT_MIN_SYSTEM_VERSION;
+    }
+
+    public boolean isImportant() {
+        return context.isImportant();
     }
 
     @Override

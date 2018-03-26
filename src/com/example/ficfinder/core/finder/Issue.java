@@ -1,6 +1,7 @@
-package com.example.ficfinder.tracker;
+package com.example.ficfinder.core.finder;
 
 import com.example.ficfinder.models.ApiContext;
+import com.example.ficfinder.utils.PubSub;
 
 public class Issue implements PubSub.Message {
 

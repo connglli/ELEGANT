@@ -1,11 +1,11 @@
-package com.example.ficfinder;
+package com.example.ficfinder.core.configurations;
 
-import com.example.ficfinder.tracker.PubSub;
+import com.example.ficfinder.utils.PubSub;
 import com.sun.istack.internal.NotNull;
 
 import java.util.*;
 
-public class ConfigParser implements PubSub {
+public class Parser implements PubSub {
 
     public static class Argument
             extends HashMap.SimpleEntry<String, String>
@@ -17,12 +17,10 @@ public class ConfigParser implements PubSub {
 
     public static final String INSTR_DONE = "instruction_done"; // INSTR_DONE means configurations are all parsed
 
-    // args
-
     private Map<String, String> args;
     private List<Handle> handles;
 
-    public ConfigParser() {
+    public Parser() {
         args = new HashMap<>();
         handles = new ArrayList<>();
     }

@@ -1,7 +1,7 @@
-package com.example.ficfinder.finder.reflectionfinder;
+package com.example.ficfinder.core.finder.reflectionfinder;
 
 import com.example.ficfinder.Container;
-import com.example.ficfinder.finder.AbstractFinder;
+import com.example.ficfinder.core.finder.AbstractFinder;
 import com.example.ficfinder.models.ApiContext;
 import com.example.ficfinder.models.api.ApiMethod;
 import com.example.ficfinder.utils.Logger;
@@ -42,12 +42,12 @@ public class RFinder extends AbstractFinder {
     }
 
     @Override
-    public void setUp() {
-        this.container.getTracker().subscribe(new RIssueHandle());
+    protected void setUp() {
+        this.container.watchIssues(new RIssueHandle(this.container));
     }
 
     @Override
-    public boolean detect(ApiContext model) {
+    protected boolean detect(ApiContext model) {
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -93,7 +93,7 @@ public class RFinder extends AbstractFinder {
     }
 
     @Override
-    public boolean validate(ApiContext model) {
+    protected boolean validate(ApiContext model) {
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -177,7 +177,7 @@ public class RFinder extends AbstractFinder {
     }
 
     @Override
-    public void generate(ApiContext model) {
+    protected void generate(ApiContext model) {
         if (!(model.getApi() instanceof ApiMethod)) {
             return ;
         }
@@ -187,12 +187,12 @@ public class RFinder extends AbstractFinder {
             SootMethod caller       = edge.src();
 
             RIssue rIssue = new RIssue(model,
-                "~",
+                caller.getDeclaringClass().getName(),
                 callSiteUnit.getJavaSourceStartLineNumber(),
                 callSiteUnit.getJavaSourceStartColumnNumber(),
-                caller.getSignature());
+                caller.getName());
 
-            this.container.getEnvironment().emit(rIssue);
+            this.container.emitIssue(rIssue);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.example.ficfinder.tracker;
+package com.example.ficfinder.utils;
 
 public interface PubSub {
 
