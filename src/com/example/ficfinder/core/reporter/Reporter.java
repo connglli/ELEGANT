@@ -16,11 +16,10 @@ public class Reporter {
     private static final String REPORT_HEAD =
             "%s, a FIC (Fragmentation Induced Compatibility) issues detector.\n" +
             "Copyright (C) 2017-2018, by Simon Lee\n" +
-            "All rights reserved";
+            "All rights reserved\n";
 
     private static final String REPORT_FOOT =
-            "%s, a FIC (Fragmentation Induced Compatibility) issues detector.\n" +
-                    "Copyright (C) 2017-2018, by Simon Lee\n";
+            "Any questions? Contact leetsong.lc@gmail.com for help\n";
 
     // every Information represents a call chain of a model
     public static class Information extends ArrayList<CallPoint> { }
@@ -69,6 +68,8 @@ public class Reporter {
             reportAllInfomation(ps, infos);
             ps.println();
         }
+
+        ps.println(REPORT_FOOT);
     }
 
     private void reportApiContext(PrintStream ps, ApiContext acpair) {
