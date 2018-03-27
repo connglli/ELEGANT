@@ -48,6 +48,7 @@ public class RFinder extends AbstractFinder {
 
     @Override
     protected boolean detect(ApiContext model) {
+        // TODO eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -94,6 +95,7 @@ public class RFinder extends AbstractFinder {
 
     @Override
     protected boolean validate(ApiContext model) {
+        // TODO eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -178,6 +180,7 @@ public class RFinder extends AbstractFinder {
 
     @Override
     protected void generate(ApiContext model) {
+        // TODO eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return ;
         }

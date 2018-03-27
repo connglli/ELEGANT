@@ -27,10 +27,10 @@ public class Soots {
     /**
      * findLatestDefinition will find the latest definition unit of value v at unit u in method m
      *
-     * @param v
-     * @param u
-     * @param m
-     * @return
+     * @param v the variable who wants to find its latest definition
+     * @param u the unit where the variable lives at
+     * @param m the method where the variable lives at
+     * @return  the latest definition unit of v
      */
     public static Unit findLatestDefinition(@NotNull Value v, @NotNull Unit u, @NotNull SootMethod m) {
         if (!(u instanceof Stmt)) { return null; }
@@ -61,10 +61,10 @@ public class Soots {
     /**
      * findPreviousDefinitions will find all previous definitions unit of value v at unit u in method m
      *
-     * @param v
-     * @param u
-     * @param m
-     * @return
+     * @param v the variable who wants to find its previous definitions
+     * @param u the unit where the variable lives at
+     * @param m the method where the variable lives at
+     * @return  the previous definitions unit of v
      */
     public static Set<Unit> findPreviousDefinitions(@NotNull Value v, @NotNull Unit u, @NotNull SootMethod m) {
         if (!(u instanceof Stmt)) { return new HashSet<>(); }
@@ -98,9 +98,9 @@ public class Soots {
     /**
      * findNodeOf finds node of unit u in pdg
      *
-     * @param u
-     * @param pdg
-     * @return
+     * @param u   the unit who wants to find its PDG node
+     * @param pdg the pdg where the unit lives
+     * @return    the PDG node where the unit lives at
      */
     public static PDGNode findNodeOf(Unit u, ProgramDependenceGraph pdg) {
         PDGNode node = null;
@@ -122,9 +122,9 @@ public class Soots {
     /**
      * findInternalForwardSlicing finds internal forward slicing units of unit u in pdg
      *
-     * @param u
-     * @param pdg
-     * @return
+     * @param u   the unit who wants to find its internal forward slicing
+     * @param pdg the pdg where the unit lives at
+     * @return    the set of forward slicing in the pdg of the unit
      */
     public static Set<Unit> findInternalForwardSlicing(Unit u, ProgramDependenceGraph pdg) {
         Set<Unit> deps = new HashSet<>(128);
@@ -148,11 +148,11 @@ public class Soots {
     }
 
     /**
-     * findInternalForwardSlicing finds internal backward slicing units of unit u in pdg
+     * findInternalBackwardSlicing finds internal backward slicing units of unit u in pdg
      *
-     * @param u
-     * @param pdg
-     * @return
+     * @param u   the unit who wants to find its internal backward slicing
+     * @param pdg the pdg where the unit lives at
+     * @return    the set of backward slicing in the pdg of the unit
      */
     public static Set<Unit> findInternalBackwardSlicing(Unit u, ProgramDependenceGraph pdg) {
         Set<Unit> internalBackwardSlicing = new HashSet<>(128);
@@ -173,9 +173,9 @@ public class Soots {
     /**
      * findDominators find all dominators of u in icfg
      *
-     * @param u
-     * @param icfg
-     * @return
+     * @param u    the unit who wants to find its dominators
+     * @param icfg the icfg where the unit lives at
+     * @return     the set of domonators in the icfg of the unit
      */
     public static Set<Unit> findDominators(Unit u, IInfoflowCFG icfg) {
         try {
@@ -191,9 +191,9 @@ public class Soots {
     /**
      * findImmediateDominator finds the immediate dominator of u in icfg
      *
-     * @param u
-     * @param icfg
-     * @return
+     * @param u    the unit who wants to find its immediate dominator
+     * @param icfg the icfg where the unit lives at
+     * @return     the immediate domonator in the icfg of the unit
      */
     public static Unit findImmediateDominator(Unit u, IInfoflowCFG icfg) {
         return new MHGDominatorsFinder<>(icfg.getOrCreateUnitGraph(icfg.getMethodOf(u)))
@@ -203,9 +203,9 @@ public class Soots {
     /**
      * findPostDominators find all post dominators of u in icfg
      *
-     * @param u
-     * @param icfg
-     * @return
+     * @param u    the unit who wants to find its post dominators
+     * @param icfg the icfg where the unit lives at
+     * @return     the set of post domonators in the icfg of the unit
      */
     public static Set<Unit> findPostDominators(Unit u, IInfoflowCFG icfg) {
         SootMethod method = icfg.getMethodOf(u);
@@ -217,9 +217,9 @@ public class Soots {
     /**
      * findImmediatePostDominator finds the immediate post dominator of u in icfg
      *
-     * @param u
-     * @param icfg
-     * @return
+     * @param u    the unit who wants to find its immediate post dominator
+     * @param icfg the icfg where the unit lives at
+     * @return     the immediate post domonator in the icfg of the unit
      */
     public static Unit findImmediatePostDominator(Unit u, IInfoflowCFG icfg) {
         return new MHGPostDominatorsFinder<>(icfg.getOrCreateUnitGraph(icfg.getMethodOf(u)))
@@ -229,10 +229,10 @@ public class Soots {
     /**
      * find backward slicing finds all the backward slicing of a unit
      *
-     * @param u
-     * @param cg
-     * @param icfg
-     * @return
+     * @param u    the unit who wants to find its backward slicing
+     * @param cg   the call graph where the unit lives at
+     * @param icfg the icfg where the unit lives at
+     * @return     the backward slicing of the unit in cg and icfg
      */
     public static Set<Unit> findBackwardSlcing(Unit u, CallGraph cg, IInfoflowCFG icfg) {
         Set<Unit> backwardSlicing = new HashSet<>();
@@ -265,10 +265,11 @@ public class Soots {
      * built in soot is incomplete, but firstly, we caches the invoking statements, and then we invoke
      * doFindCallSites to do actual finding.
      *
-     * @param callee
-     * @param cg
-     * @param classes
-     * @return
+     * @param callee  the callee who wants to find its call sites
+     * @param cg      the call graph needed traversing
+     * @param classes the classes needed traversing
+     * @param pkgs    the pkgs needed traversing
+     * @return        the call sites of callee
      */
     public static Map<SootMethod, CallSites> findCallSites(
             SootMethod callee,
@@ -278,10 +279,26 @@ public class Soots {
         // firstly, we traverse each soot method's body, caches the invoking statements
         if (invokingStmtsCache.isEmpty()) {
             for (SootClass c : classes) {
-                // skip android and java libraries
-                boolean doAnalysis = false;
-                for (String s : pkgs) { if (c.getJavaPackageName().startsWith(s)) { doAnalysis = true; break; } }
-                if (!doAnalysis) { continue; }
+                // TODO a tool to filter 3rd-party libraries
+                // These codes does not work for some debug-version apk, and actually, it does not work for
+                // the released ones. We need a 3rd-party library elimination tool in practice. But here, we
+                // simplify them. But for future use, we remain them here.
+                if (false) {
+                    boolean doAnalysis = false;
+                    for (String s : pkgs) { if (c.getJavaPackageName().startsWith(s)) { doAnalysis = true; break; } }
+                    if (!doAnalysis) { continue; }
+                } else {
+                    String javaPackageName = c.getJavaPackageName();
+                    // filter some frequently used libraries
+                    if (javaPackageName.startsWith("android") ||
+                            javaPackageName.startsWith("java") ||
+                            javaPackageName.startsWith("org.omg") ||
+                            javaPackageName.startsWith("org.w3c") ||
+                            javaPackageName.startsWith("org.xml") ||
+                            javaPackageName.startsWith("org.apache") ||
+                            javaPackageName.startsWith("com.sun") ||
+                            javaPackageName.startsWith("org.eclipse")) { continue; }
+                }
 
                 for (SootMethod m : c.getMethods()) {
                     try {

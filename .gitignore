@@ -78,3 +78,8 @@ out/*
 **/META-INF/*
 assets/android-platforms/**/android.jar
 test/**/*.apk
+test/apks
+test/errrep
+test/techrep
+test/sootOutput
+test/**/*.jar
