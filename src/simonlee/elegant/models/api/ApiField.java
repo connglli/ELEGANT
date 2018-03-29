@@ -6,7 +6,7 @@ import com.alibaba.fastjson.annotation.JSONType;
 @JSONType(typeName = "field")
 public class ApiField extends Api {
 
-    public static final String TAG = "com.example.ficfinder.models.api.ApiField";
+    private static final String TAG = "simonlee.elegant.models.api.ApiField";
 
     @JSONField(name = "iface")
     private String iface;

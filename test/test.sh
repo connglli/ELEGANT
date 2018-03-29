@@ -8,7 +8,7 @@ readonly apk_name
 
 echo -e "\033[1;32m========> ${apk_name}\033[0m"
 
-java -jar fic-finder.jar \
+java -jar ELEGANT.jar \
   --models=models.json \
   --apk="${apk_path}" \
   --output="techrep/${apk_name}.tech.rep" \

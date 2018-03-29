@@ -1,4 +1,4 @@
-# fic-finder
+# ELEGANT
 
 ## Intro
 
@@ -6,7 +6,7 @@ A self implementation of [FicFinder](http://sccpu2.cse.ust.hk/ficfinder/index.ht
 
 ## TODO
 
-+ [ ] Make every apk containable, that is to say, every apk runs separately, fic-finder has the ability to handle multiple apks
++ [ ] Make every apk containable, that is to say, every apk runs separately, ELEGANT has the ability to handle multiple apks
 + [ ] A official website that can, receive apk and models rules, and return issues
 + [ ] The website can hold the following functions:
     + [ ] separate running a FIC checking using the predefined rules

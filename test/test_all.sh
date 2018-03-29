@@ -9,7 +9,7 @@
 # test_apks_list=`ls ${APKS_DIR}`
 # for apk_name in ${test_apks_list}; do
 #   echo -e "\033[1;32m========> ${apk_name}\033[0m"
-#   java -Xmx2g -jar fic-finder.jar \
+#   java -Xmx2g -jar ELEGANT.jar \
 #     --models=models.json \
 #     --apk="${APKS_DIR}/${apk_name}" \
 #     > "techrep/${apk_name}.tech.rep" 2>&1 &&
@@ -40,7 +40,7 @@ readonly APKS_DIR
 
 for apk_name in ${test_apks_list[@]}; do
   echo -e "\033[1;32m========> ${apk_name}\033[0m"
-  java -jar fic-finder.jar \
+  java -jar ELEGANT.jar \
     --models=models.json \
     --apk="${APKS_DIR}/${apk_name}" \
     --output="techrep/${apk_name}.tech.rep" \

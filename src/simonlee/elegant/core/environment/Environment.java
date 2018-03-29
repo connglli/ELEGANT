@@ -31,7 +31,7 @@ public class Environment implements PubSub.Handle {
     public static final String ARG_PLATFORMS         = "platforms";
     public static final String ARG_SOURCES_AND_SINKS = "sourcesAndSinks";
 
-    // Environment variable of FicFinder
+    // Environment variable of ELEGANT
 
     // k neighbors, used in backward slicing
     public static final int ENV_K_NEIGHBORS = 10;
@@ -56,7 +56,7 @@ public class Environment implements PubSub.Handle {
             "-whole-program",
 
             // input options
-            "-process-dir", "-", // TODO it should be a parameter passed to fic-finder
+            "-process-dir", "-", // TODO it should be a parameter passed to ELEGANT
             "-src-prec", "apk",
             "-android-jars", androidPlatformsPath,
             "-prepend-classpath",

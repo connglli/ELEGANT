@@ -8,7 +8,7 @@ import java.util.List;
 @JSONType(typeName = "method")
 public class ApiMethod extends Api {
 
-    public static final String TAG = "com.example.ficfinder.models.api.ApiMethod";
+    private static final String TAG = "simonlee.elegant.models.api.ApiMethod";
 
     @JSONField(name = "iface")
     private String iface;
