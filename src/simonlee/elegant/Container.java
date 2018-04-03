@@ -24,19 +24,19 @@ import java.util.Set;
 public class Container {
 
     // soot-unaware container-unaware components
-    private Parser configParser;
-    private Tracker tracker;
-    private Reporter reporter;
+    private Parser   configParser;
+    private Tracker  tracker;
 
     // soot-aware container-aware components
-    private Finder finder;
+    private Reporter    reporter;
+    private Finder      finder;
     private Environment environment;
 
     {
         configParser = new Parser();
         tracker      = new Tracker();
-        reporter     = new Reporter();
 
+        reporter     = new Reporter(this);
         environment  = new Environment(this);
         finder       = new Finder(this);
     }
@@ -45,6 +45,7 @@ public class Container {
         configParser.parse(configs);
         finder.run();
         reporter.report(environment.getOutput());
+        environment.getOutput().close();
     }
 
     // delegate Environment
@@ -67,6 +68,10 @@ public class Container {
 
     public Set<ApiContext> getModels() {
         return environment.getModels();
+    }
+
+    public boolean isVerbose() {
+        return environment.isVerbose();
     }
 
     public IInfoflowCFG getInterproceduralCFG() {

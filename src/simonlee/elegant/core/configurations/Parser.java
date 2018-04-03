@@ -40,16 +40,24 @@ public class Parser implements PubSub {
                 continue;
             }
 
-            // every legal config is formatted as --<key>=<value>
+            // every legal config is formatted as --<key>=<value> or --<key>
             String[] tokens = config.split("--|=");
 
-            // we will omit unformatted configs
-            if (tokens.length != 3) {
-                continue ;
-            }
+            String key   = null;
+            String value = null;
 
-            String key = tokens[1];
-            String value = tokens[2];
+            if (tokens.length == 3) {
+                // --<key>=<value>
+                key   = tokens[1];
+                value = tokens[2];
+            } else if (tokens.length == 2) {
+                // --<key>
+                key   = tokens[1];
+                value = null;
+            } else {
+                // do nothing
+                // we will omit unformatted configs
+            }
 
             // publish it
             publish(new Argument(key, value));

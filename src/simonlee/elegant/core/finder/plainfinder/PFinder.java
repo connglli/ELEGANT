@@ -204,9 +204,7 @@ public class PFinder extends AbstractFinder {
         }
 
         // if all children of root is cut, then we know that, all issues are fixed
-        if (0 == callSitesTree.getRoot().getChildren().size()) { return false; }
-
-        return true;
+        return 0 != callSitesTree.getRoot().getChildren().size();
     }
 
     // We will use genPathes_Tree in generation phase
@@ -296,11 +294,19 @@ public class PFinder extends AbstractFinder {
                 "android.os.Build: java.lang.String BOARD",
                 "android.os.Build: java.lang.String BRAND",
                 "android.os.Build: java.lang.String DEVICE",
-                "android.os.Build: java.lang.String PRODUCT")) {
+                "android.os.Build: java.lang.String PRODUCT",
+                "android.os.Build: java.lang.String MANUFACTURER",
+                "android.os.Build: java.lang.String MODEL",
+                "BOARD",
+                "BRAND",
+                "DEVICE",
+                "PRODUCT",
+                "MANUFACTURER",
+                "MODEL")) {
             return true;
         } else {
             for (String device : devices) {
-                if (s.contains(device)) {
+                if (s.toLowerCase().contains(device.toLowerCase())) {
                     return true;
                 }
             }
@@ -333,7 +339,14 @@ public class PFinder extends AbstractFinder {
                     (model.needCheckApiLevel() || model.needCheckSystemVersion()) &&
                     Strings.containsIgnoreCase(aSlicing.toString(),
                             "android.os.Build$VERSION: int SDK_INT",
-                            "android.os.Build$VERSION: java.lang.String SDK");
+                            "android.os.Build$VERSION: java.lang.String SDK",
+                            "android.os.Build: long TIME",
+                            "android.os.Build$VERSION_CODES",
+                            "VERSION_CODES",
+                            "VERSION",
+                            "SDK_INT",
+                            "SDK",
+                            "TIME");
         }
 
     }

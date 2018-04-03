@@ -49,4 +49,22 @@ public class CallPoint {
         this.method = method;
     }
 
+    @Override
+    public int hashCode() {
+        return srcFile.hashCode() + startLineNumber + startColumnNumber + method.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof CallPoint)) {
+            return false;
+        }
+
+        CallPoint cp = (CallPoint) obj;
+
+        return srcFile.equals(cp.srcFile) &&
+                startColumnNumber == cp.startColumnNumber &&
+                startLineNumber == cp.startLineNumber &&
+                method.equals(cp.method);
+    }
 }

@@ -6,9 +6,6 @@ readonly JAVA_CP
 SOOT_CP=./example/out
 readonly SOOT_CP
 
-ENTRY=com.example.fictest.MainActivity
-readonly ENTRY
-
 PROCESS_DIR=./example/out
 readonly PROCESS_DIR
 
@@ -34,8 +31,7 @@ gen() {
     -keep-line-number \
     -output-format ${2} \
     -output-dir ${3} \
-    -phase-option cg.spark enabled:true \
-    ${ENTRY}
+    -phase-option cg.spark enabled:true
 }
 
 # $1 is pattern

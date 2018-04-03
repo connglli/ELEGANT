@@ -20,6 +20,9 @@ public class Soots {
 
     private static Logger logger = new Logger(Soots.class);
 
+    private static final String CLASS_STATIC_CODE_BLOCK_METHOD_NAME = "<clinit>";
+    private static final String CLASS_CODE_BLOCK_METHOD_NAME        = "<init>";
+
     // invokingStmtsCache, as a cache, stores all statements that will invoke a method
     // the key is the method where the statement is
     private static Map<SootMethod, Set<Unit>> invokingStmtsCache = new HashMap<>(256);
@@ -288,16 +291,8 @@ public class Soots {
                     for (String s : pkgs) { if (c.getJavaPackageName().startsWith(s)) { doAnalysis = true; break; } }
                     if (!doAnalysis) { continue; }
                 } else {
-                    String javaPackageName = c.getJavaPackageName();
                     // filter some frequently used libraries
-                    if (javaPackageName.startsWith("android") ||
-                            javaPackageName.startsWith("java") ||
-                            javaPackageName.startsWith("org.omg") ||
-                            javaPackageName.startsWith("org.w3c") ||
-                            javaPackageName.startsWith("org.xml") ||
-                            javaPackageName.startsWith("org.apache") ||
-                            javaPackageName.startsWith("com.sun") ||
-                            javaPackageName.startsWith("org.eclipse")) { continue; }
+                    if (isIn3rdPartyLibrary(c.getJavaPackageName())) { continue; }
                 }
 
                 for (SootMethod m : c.getMethods()) {
@@ -366,7 +361,14 @@ public class Soots {
             SootMethod caller   = edge.src();
             Unit       callSite = edge.srcUnit();
 
-            if (callers.containsKey(caller)) {
+            // TODO a tool to filter 3rd-party libraries
+            // These codes does not work for some debug-version apk, and actually, it does not work for
+            // the released ones. We need a 3rd-party library elimination tool in practice. But here, we
+            // simplify them. But for future use, we remain them here.
+            if (null == caller || null == caller.getDeclaringClass() ||
+                    isIn3rdPartyLibrary(caller.getDeclaringClass().getJavaPackageName())) {
+                continue ;
+            } else if (callers.containsKey(caller)) {
                 callers.get(caller).addCallSite(callSite);
             } else {
                 callers.put(caller, new CallSites(callee, caller, callSite));
@@ -392,7 +394,7 @@ public class Soots {
 
     // findBackwardDataDependencies finds the data-flow dependencies of u located at m in the call graph
     private static Set<Unit> findBackwardDataDependencies(Unit u, SootMethod m, CallGraph cg) {
-        return findBackwardDataDependenciesExcept(u, m, cg, new HashSet<Value>());
+        return findBackwardDataDependenciesExcept(u, m, cg, new HashSet<>());
     }
 
     // findBackwardDataDependenciesExcept finds the data-flow dependencies of u located at m in the call graph,
@@ -403,6 +405,24 @@ public class Soots {
             CallGraph cg,
             Set<Value> exValues) {
         Set<Unit> ret = new HashSet<>();
+        SootClass c = null == m ? null : m.getDeclaringClass();
+
+        // TODO a tool to filter 3rd-party libraries
+        // skip 3rd-party
+        if (null == m || null == c || isIn3rdPartyLibrary(c.getJavaPackageName())) {
+            return new HashSet<>();
+        }
+
+        // trick, we add all units in <clinit>(the static code block) and <init> into slicing
+        // because these two blocks are sometimes the dependencies of other units
+        try {
+            for (SootMethod mm : c.getMethods()) {
+                if (CLASS_STATIC_CODE_BLOCK_METHOD_NAME.equals(mm.getName()) ||
+                        CLASS_CODE_BLOCK_METHOD_NAME.equals(mm.getName())) {
+                    ret.addAll(mm.getActiveBody().getUnits());
+                }
+            }
+        } catch (Exception e) { }
 
         for (ValueBox vb : u.getUseBoxes()) {
             Value v = vb.getValue();
@@ -410,8 +430,11 @@ public class Soots {
             // ignore non-local values and excepted values
             if (!(v instanceof Local) || exValues.contains(v)) { continue; }
 
-            // find and track those redefined statements
+            // find those redefined statements
             Set<Unit> redefeindStmts = findPreviousDefinitions(v, u, m);
+            // add theses redefined statements
+            ret.addAll(redefeindStmts);
+            // track these redefined statements
             for (Unit uu : redefeindStmts) {
                 // when the redefined statement is redefined by a method arg, we continually track the caller
                 if (uu instanceof IdentityStmt && ((IdentityStmt) uu).getRightOp() instanceof ParameterRef) {
@@ -419,6 +442,10 @@ public class Soots {
                     Map<SootMethod, CallSites> callSites = doFindCallSites(m, cg);
 
                     for (Map.Entry<SootMethod, CallSites> entry : callSites.entrySet()) {
+                        // skip recursions
+                        SootMethod caller = entry.getKey();
+                        if (null != caller && caller.equals(m)) { continue; }
+                        // not recursions
                         for (Unit callSite : entry.getValue().getCallSites()) {
                             assert callSite instanceof Stmt && ((Stmt) callSite).containsInvokeExpr();
                             Value      trackedArg    = ((Stmt) callSite).getInvokeExpr().getArg(argIdx);
@@ -434,6 +461,34 @@ public class Soots {
         }
 
         return ret;
+    }
+
+    // TODO a 3rd-party libraries elimination tool, like LibScout
+    // isIn3rdPartyLibrary checks if the signature represented api is a 3rd-party one,
+    // we implements them here with a black list
+    private static boolean isIn3rdPartyLibrary(String signature) {
+        List<String> blackList = Arrays.asList(
+            "android",          // android official
+            "java",             // java official
+            "com.jakewharton",  // butterknife
+            "com.github",       // github related, glide, etc.
+            "com.squareup",     // okhttp, retrofit, etc.
+            "com.google",       // google related, gson, guava, etc.
+            "com.crashlytcics", // firebase
+            "org.omg",          // extends to java
+            "org.w3c",          // extends to java
+            "org.xml",          // extends to java
+            "org.apache",       // apache organization
+            "com.sun",          // sun
+            "org.eclipse",      // eclipse
+            "rx"                // reactivex java
+        );
+
+        for (String s : blackList) {
+            if (signature.startsWith(s)) { return true; }
+        }
+
+        return false;
     }
 
 }

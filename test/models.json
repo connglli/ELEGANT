@@ -368,7 +368,9 @@
       "paramList": []
     },
     "context": {
-      "min_api_level": 11
+      "min_api_level": 11,
+      "important": "min_api_level",
+      "message": "this api is not a well-designed api in some developer's view, you may not be able to get the right one. Check https://code.videolan.org/videolan/vlc-android/commit/fb93861845e4c539f657a21776216c5631b5cc29 for more help"
     }
   },
   {
@@ -549,8 +551,8 @@
   {
     "api": {
       "@type": "iface",
-      "pkg": "android.provider.SyncStateContract",
-      "iface": "Constants"
+      "pkg": "android.provider",
+      "iface": "SyncStateContract$Constants"
     },
     "context": {
       "min_api_level": 5
@@ -1008,5 +1010,318 @@
       "important": "min_api_level",
       "message": "this api is recommended to be used with a reference to its return value on device under Android 4.2 (i.e. JELLY_BEAN_MR1). If not, once a gc operation happened after its invocation, your app will crash. Check https://issuetracker.google.com/issues/36983679 and https://github.com/k9mail/k-9/commit/21237c37204541960bec596bed5fe105e010b157 for more help."
     }
-  }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "onKeyDown",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "android.view",
+          "iface": "KeyEvent"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 16,
+      "bad_devices": [
+        "lg", "LGE"
+      ],
+      "message": "this api is recommended to be used along with a device checking of LG, the menu button is not compatible with LG when `onKeyDown` is invoked. Check https://issuetracker.google.com/issues/37008260 and https://code.videolan.org/videolan/vlc-android/commit/c4ade9fe04eb244dde2eb4f4994ba3789f93f5f0 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.view",
+      "iface": "View",
+      "type": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "field": "SYSTEM_UI_FLAG_HIDE_NAVIGATION"
+    },
+    "context": {
+      "min_api_level": 14,
+      "bad_devices": [
+        "htc one",
+        "htc one v",
+        "htc one s",
+        "htc one x",
+        "htc one xl"
+      ],
+      "message": "this api is not recommended to be used in the HTC ONE series. Check https://code.videolan.org/videolan/vlc-android/commit/706530ea1bafae475c2ef3582546771aedd53723 for more help."
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.support.v7.app",
+      "iface": "AppCompatActivity",
+      "method": "setSupportActionBar",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "android.support.v7.widget",
+          "iface": "Toolbar"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 25,
+      "bad_devices": [
+        "samsung", "galaxy"
+      ],
+      "message": "this api will crash the app in some Samsung devices. Check https://code.videolan.org/videolan/vlc-android/commit/0a35b4029f94fca5e190fa3dc104c5fa619ddd69 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.graphics",
+      "iface": "BitmapFactory$Options",
+      "type": {
+        "pkg": "android.graphics",
+        "iface": "Bitmap"
+      },
+      "field": "inBitmap"
+    },
+    "context": {
+      "min_api_level": 11,
+      "message": "Check https://developer.android.com/reference/android/graphics/BitmapFactory.Options.html#inBitmap for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.webkit",
+      "iface": "WebSettings$LayoutAlgorithm",
+      "type": {
+        "pkg": "android.webkit",
+        "iface": "WebSettings$LayoutAlgorithm"
+      },
+      "field": "SINGLE_COLUMN"
+    },
+    "context": {
+      "min_api_level": 8,
+      "message": "this api will cause Android 1.0-2.1 to segfault, and deprecated according to android official docs. Check https://github.com/k9mail/k-9/commit/e0d6a55d06cd15ace22fa224fd1966cf5d983992 and https://developer.android.com/reference/android/webkit/WebSettings.LayoutAlgorithm.html for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider",
+      "iface": "Contacts$ContactMethods"
+    },
+    "context": {
+      "max_api_level": 4
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.os",
+      "iface": "Build$VERSION",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "SDK"
+    },
+    "context": {
+      "max_api_level": 3,
+      "message": "this api is deprecated in api level 4, use SDK_INT instead."
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider",
+      "iface": "ContactsContract"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider",
+      "iface": "Contacts"
+    },
+    "context": {
+      "max_api_level": 4
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.content",
+      "iface": "Intent",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "ACTION_SEND_MULTIPLE"
+    },
+    "context": {
+      "min_api_level": 4
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "TextView",
+      "method": "setTextIsSelectable",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 1
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.media",
+      "iface": "MediaRecorder$AudioEncoder",
+      "type": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "field": "AMR_WB"
+    },
+    "context": {
+      "min_api_level": 10
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.view",
+      "iface": "View",
+      "type": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "field": "SYSTEM_UI_FLAG_IMMERSIVE_STICKY"
+    },
+    "context": {
+      "min_api_level": 19
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.webkit",
+      "iface": "CookieSyncManager"
+    },
+    "context": {
+      "max_api_level": 20
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.appwidget",
+      "iface": "AppWidgetManager",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "OPTION_APPWIDGET_MIN_HEIGHT"
+    },
+    "context": {
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "PopupWindow",
+      "method": "setAttachedInDecor",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 22
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.content",
+      "iface": "Intent",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "EXTRA_REMOTE_INTENT_TOKEN"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.provider",
+      "iface": "Settings$System",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "WIFI_SLEEP_POLICY"
+    },
+    "context": {
+      "min_api_level": 3,
+      "max_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.media",
+      "iface": "AudioManager",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "PROPERTY_OUTPUT_SAMPLE_RATE"
+    },
+    "context": {
+      "min_api_level": 17
+    }
+  },
 ]

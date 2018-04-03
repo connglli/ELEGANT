@@ -60,15 +60,11 @@ public abstract class AbstractFinder {
     public void analyse() {
         this.models.forEach(model -> {
             // when this model has important field, then we skip the validate phase, generate them directly
-//            if (detect(model) &&
-//                    (model.isImportant()
-//                            || validate(model))) {
-//                generate(model);
-//            }
-            if (detect(model)) {
+            if (detect(model) &&
+                    (model.isImportant()
+                            || validate(model))) {
                 generate(model);
             }
-
         });
     }
 }

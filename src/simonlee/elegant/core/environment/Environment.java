@@ -28,6 +28,7 @@ public class Environment implements PubSub.Handle {
     public static final String ARG_MODELS            = "models";
     public static final String ARG_APK               = "apk";
     public static final String ARG_OUTPUT            = "output";
+    public static final String ARG_VERBOSE           = "verbose";
     public static final String ARG_PLATFORMS         = "platforms";
     public static final String ARG_SOURCES_AND_SINKS = "sourcesAndSinks";
 
@@ -46,9 +47,10 @@ public class Environment implements PubSub.Handle {
 
     // some converted arguments
     private Set<ApiContext> models;
-    private PrintStream output = System.out;
-    private String androidPlatformsPath = "assets/android-platforms";
-    private String sourcesAndSinksTextPath = "assets/SourcesAndSinks.txt";
+    private PrintStream     output = System.out;
+    private String          androidPlatformsPath = "assets/android-platforms";
+    private String          sourcesAndSinksTextPath = "assets/SourcesAndSinks.txt";
+    private boolean         verbose = false;
 
     // default soot settings
     private String[] options = {
@@ -73,8 +75,8 @@ public class Environment implements PubSub.Handle {
 
     // soot-analysed results
     private SetupApplication app;
-    private ProcessManifest manifest;
-    private IInfoflowCFG interproceduralCFG;
+    private ProcessManifest  manifest;
+    private IInfoflowCFG     interproceduralCFG;
 
     public Environment(Container container) {
         this.container = container;
@@ -101,6 +103,10 @@ public class Environment implements PubSub.Handle {
 
     public Set<ApiContext> getModels() {
         return models;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
     }
 
     public IInfoflowCFG getInterproceduralCFG() {
@@ -136,6 +142,9 @@ public class Environment implements PubSub.Handle {
                 break;
             case ARG_OUTPUT:
                 parseOutput(argument.getValue());
+                break;
+            case ARG_VERBOSE:
+                parseVerbose(argument.getValue());
                 break;
             case ARG_PLATFORMS:
                 parsePlatforms(argument.getValue());
@@ -209,6 +218,16 @@ public class Environment implements PubSub.Handle {
         } catch (FileNotFoundException e) {
             logger.w("file \"" + filePath + "\" not found");
             this.output = System.out;
+        }
+    }
+
+    private void parseVerbose(String verbose) {
+        if (null == verbose ||
+                "true".equalsIgnoreCase(verbose) ||
+                "t".equalsIgnoreCase(verbose)) {
+            this.verbose = true;
+        } else {
+            this.verbose = false;
         }
     }
 
