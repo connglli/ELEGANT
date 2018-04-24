@@ -55,7 +55,7 @@ import java.util.*;
  *       done
  *
  *       foreach call site cs in node.getCallSites() do
- *         slicing = runBackgroundSlicing(cs)
+ *         slicing = runBackwardSlicing(cs)
  *         foreach slice s in slicing do
  *           if (s can fix issue) then
  *             delete cs in node
@@ -175,7 +175,7 @@ public class PFinder extends AbstractFinder {
             callSitesToBeCut.clear();
 
             for (Unit callSite : callSites) {
-                Set<Unit> slicing = Soots.findBackwardSlcing(callSite, cg, icfg);
+                Set<Unit> slicing = Soots.findBackwardSlicing(callSite, caller, cg, icfg);
                 for (Unit aSlicing : slicing) {
                     if (canHandleIssue(model, issueType, aSlicing)) {
                         callSitesToBeCut.add(callSite);

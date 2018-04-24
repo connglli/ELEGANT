@@ -65,6 +65,9 @@ public abstract class AbstractFinder {
                             || validate(model))) {
                 generate(model);
             }
+//            if (detect(model)) {
+//                generate(model);
+//            }
         });
     }
 }

@@ -11,7 +11,7 @@ public class ELEGANT {
         public static String MINOR_V = "0";
         public static String PATCH_V = "0";
         public static String VERSION = MAJOR_V + "." + MINOR_V + "." + PATCH_V;
-    };
+    }
 
     // author information
     public static class AUTHOR {

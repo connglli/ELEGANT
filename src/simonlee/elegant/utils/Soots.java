@@ -177,13 +177,14 @@ public class Soots {
      * findDominators find all dominators of u in icfg
      *
      * @param u    the unit who wants to find its dominators
+     * @param m    the method where the unit lives at
      * @param icfg the icfg where the unit lives at
      * @return     the set of domonators in the icfg of the unit
      */
-    public static Set<Unit> findDominators(Unit u, IInfoflowCFG icfg) {
+    public static Set<Unit> findDominators(Unit u, SootMethod m, IInfoflowCFG icfg) {
         try {
-            SootMethod method = icfg.getMethodOf(u);
-            DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(method);
+            // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+            DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(m);
             MHGDominatorsFinder<Unit> mhgDominatorsFinder = new MHGDominatorsFinder<>(graph);
             return new HashSet<>(mhgDominatorsFinder.getDominators(u));
         } catch (Exception e) {
@@ -195,11 +196,13 @@ public class Soots {
      * findImmediateDominator finds the immediate dominator of u in icfg
      *
      * @param u    the unit who wants to find its immediate dominator
+     * @param m    the method where the unit lives at
      * @param icfg the icfg where the unit lives at
      * @return     the immediate domonator in the icfg of the unit
      */
-    public static Unit findImmediateDominator(Unit u, IInfoflowCFG icfg) {
-        return new MHGDominatorsFinder<>(icfg.getOrCreateUnitGraph(icfg.getMethodOf(u)))
+    public static Unit findImmediateDominator(Unit u, SootMethod m, IInfoflowCFG icfg) {
+        // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+        return new MHGDominatorsFinder<>(icfg.getOrCreateUnitGraph(m))
                 .getImmediateDominator(u);
     }
 
@@ -207,12 +210,13 @@ public class Soots {
      * findPostDominators find all post dominators of u in icfg
      *
      * @param u    the unit who wants to find its post dominators
+     * @param m    the method where the unit lives at
      * @param icfg the icfg where the unit lives at
      * @return     the set of post domonators in the icfg of the unit
      */
-    public static Set<Unit> findPostDominators(Unit u, IInfoflowCFG icfg) {
-        SootMethod method = icfg.getMethodOf(u);
-        DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(method);
+    public static Set<Unit> findPostDominators(Unit u, SootMethod m, IInfoflowCFG icfg) {
+        // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+        DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(m);
         MHGPostDominatorsFinder<Unit> mhgPostDominatorsFinder = new MHGPostDominatorsFinder<>(graph);
         return new HashSet<>(mhgPostDominatorsFinder.getDominators(u));
     }
@@ -221,23 +225,26 @@ public class Soots {
      * findImmediatePostDominator finds the immediate post dominator of u in icfg
      *
      * @param u    the unit who wants to find its immediate post dominator
+     * @param m    the method where the unit lives at
      * @param icfg the icfg where the unit lives at
      * @return     the immediate post domonator in the icfg of the unit
      */
-    public static Unit findImmediatePostDominator(Unit u, IInfoflowCFG icfg) {
-        return new MHGPostDominatorsFinder<>(icfg.getOrCreateUnitGraph(icfg.getMethodOf(u)))
+    public static Unit findImmediatePostDominator(Unit u, SootMethod m, IInfoflowCFG icfg) {
+        // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+        return new MHGPostDominatorsFinder<>(icfg.getOrCreateUnitGraph(m))
                 .getImmediateDominator(u);
     }
 
     /**
-     * find backward slicing finds all the backward slicing of a unit
+     * findBackwardSlicing finds all the backward slicing of a unit
      *
      * @param u    the unit who wants to find its backward slicing
+     * @param m    the method where the unit lives at
      * @param cg   the call graph where the unit lives at
      * @param icfg the icfg where the unit lives at
      * @return     the backward slicing of the unit in cg and icfg
      */
-    public static Set<Unit> findBackwardSlcing(Unit u, CallGraph cg, IInfoflowCFG icfg) {
+    public static Set<Unit> findBackwardSlicing(Unit u, SootMethod m, CallGraph cg, IInfoflowCFG icfg) {
         Set<Unit> backwardSlicing = new HashSet<>();
 
         // a slicing includes the data-flow dependencies and control-flow dependencies
@@ -245,19 +252,35 @@ public class Soots {
         // secondly we compute the control-flow dependencies using the inter-procedural control flow graph
 
         // 1. data-flow dependencies
-        backwardSlicing.addAll(findBackwardDataDependencies(u, icfg.getMethodOf(u), cg));
+        Set<Unit> backwardDataBackwardDependencies = findBackwardDataDependencies(u, m, cg);
+        backwardSlicing.addAll(backwardDataBackwardDependencies);
 
         // 2. control-flow dependencies
-        backwardSlicing.addAll(findDominators(u, icfg));
+        Set<Unit> dominators = findDominators(u, m, icfg);
+        for (Unit d : dominators) {
+            if (!backwardSlicing.contains(d)) {
+                // find data-flow dependencies of this dominator
+                backwardSlicing.addAll(findBackwardDataDependencies(d, icfg.getMethodOf(d), cg));
+            }
+        }
+        backwardSlicing.addAll(dominators);
 
         // 3. we use the built-in backward slicing to get the intra-procedural backward slicing
         try {
-            backwardSlicing.addAll(
-                    findInternalBackwardSlicing(
-                            u,
-                            new HashMutablePDG(new BriefUnitGraph(icfg.getMethodOf(u).getActiveBody()))));
+            Set<Unit> builtInBackwardSlicing = findInternalBackwardSlicing(u,
+                    new HashMutablePDG(new BriefUnitGraph(m.getActiveBody())));
+            backwardSlicing.addAll(builtInBackwardSlicing);
         } catch (Exception e) {
             // do nothing here
+        }
+
+        // 4. TRICK here: we add all IfStmt before u and its corresponding definitions into slicing,
+        //    because most developers will use this method
+        try {
+            Set<Unit> trickySlicing = findTrickySlicing(u, m);
+            backwardSlicing.addAll(trickySlicing);
+        } catch (Exception e) {
+            // do nothing
         }
 
         return backwardSlicing;
@@ -463,25 +486,76 @@ public class Soots {
         return ret;
     }
 
+    // findTrickySlicing finds the slicing that is not easy by a comman way, i.e. by a tricky way
+    private static Set<Unit> findTrickySlicing(Unit u, SootMethod m) {
+        Set<Unit> ret  = new HashSet<>();
+        Body      body = null;
+
+        try { body = m.getActiveBody(); } catch (Exception e) { return ret; }
+
+        List<Unit> units = new ArrayList<>(body.getUnits());
+        int        uIdx  = units.indexOf(u);
+        for (int i = 0; i < uIdx; i ++) {
+            Unit uu = units.get(i);
+            if (null == uu || !(uu instanceof IfStmt)) { continue; }
+            else { ret.add(uu); }
+
+            IfStmt ifStmt = (IfStmt) uu;
+
+            try {
+                Value leftV = ifStmt.getCondition().getUseBoxes().get(0).getValue();
+                if (leftV instanceof Local) {
+                    ret.add(findLatestDefinition(leftV, uu, m));
+                }
+            } catch (Exception e) {
+                // do nothing
+            }
+
+            try {
+                Value rightV = ifStmt.getCondition().getUseBoxes().get(1).getValue();
+                if (rightV instanceof Local) {
+                    ret.add(findLatestDefinition(rightV, uu, m));
+                }
+            } catch (Exception e) {
+                // do nothing
+            }
+        }
+
+        return ret;
+    }
+
     // TODO a 3rd-party libraries elimination tool, like LibScout
     // isIn3rdPartyLibrary checks if the signature represented api is a 3rd-party one,
     // we implements them here with a black list
     private static boolean isIn3rdPartyLibrary(String signature) {
         List<String> blackList = Arrays.asList(
-            "android",          // android official
-            "java",             // java official
-            "com.jakewharton",  // butterknife
-            "com.github",       // github related, glide, etc.
-            "com.squareup",     // okhttp, retrofit, etc.
-            "com.google",       // google related, gson, guava, etc.
-            "com.crashlytcics", // firebase
-            "org.omg",          // extends to java
-            "org.w3c",          // extends to java
-            "org.xml",          // extends to java
-            "org.apache",       // apache organization
-            "com.sun",          // sun
-            "org.eclipse",      // eclipse
-            "rx"                // reactivex java
+            "android",                          // android official
+            "java",                             // java official
+            "com.jakewharton",                  // butterknife
+            "com.github",                       // github related, glide, etc.
+            "com.squareup",                     // okhttp, retrofit, etc.
+            "com.google",                       // google related, gson, guava, etc.
+            "com.handmark",                     // Android Pull-to-Refresh
+            "com.facebook",                     // facebook related sdk
+            "com.afollestad.materialdialogs",   // material dialogs
+            "com.bumptech",                     // glide
+            "com.viewpagerindicator",           // ViewPager related
+            "com.actionbarsherlock",            // ActionBar related
+            "org.openintents",                  // Intent related
+            "com.melnykov",                     // FloatingActionButton related
+            "com.getbase.floatingactionbutton", // FloatingActionButton related
+            "com.helpshift",                    // help shift android sdk
+            "com.crashlytcics",                 // firebase
+            "eu.siacs.conversations",           // open source XMPP/Jabber client
+            "com.makeramen.roundedimageview",   // image view
+            "com.nispok.snackbar",              // snackbar
+            "org.omg",                          // extends to java
+            "org.w3c",                          // extends to java
+            "org.xml",                          // extends to java
+            "org.apache",                       // apache organization
+            "com.sun",                          // sun
+            "org.eclipse",                      // eclipse
+            "rx"                                // reactivex java
         );
 
         for (String s : blackList) {

@@ -34,7 +34,7 @@ public class Reporter {
     private static final String REPORT_API_USAGE_SUMMARY_TEMPLATE =
             "  unrecommended usages: %d/%d (call-sites/call-chains)\n";
     private static final String REPORT_API_USAGE_CALL_CHAIN_USAGE_TEMPLATE =
-            "  (%d) %s usages: %d (call-chains)\n";
+            "  (%d) %s, usages: %d (call-chains)\n";
     private static final String REPORT_API_USAGE_CALL_CHAIN_LENGTH_TEMPLATE =
             "  (%d) call chain length: %d (or larger)\n";
     private static final String REPORT_API_USAGE_CALL_CHAIN_AT_TEMPLATE =
