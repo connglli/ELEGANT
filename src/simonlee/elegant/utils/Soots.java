@@ -535,18 +535,17 @@ public class Soots {
             "com.github",                       // github related, glide, etc.
             "com.squareup",                     // okhttp, retrofit, etc.
             "com.google",                       // google related, gson, guava, etc.
-            "com.handmark",                     // Android Pull-to-Refresh
+            "com.handmark.pulltorefresh",       // Android Pull-to-Refresh
             "com.facebook",                     // facebook related sdk
             "com.afollestad.materialdialogs",   // material dialogs
-            "com.bumptech",                     // glide
+            "com.bumptech.glide",               // glide
             "com.viewpagerindicator",           // ViewPager related
             "com.actionbarsherlock",            // ActionBar related
             "org.openintents",                  // Intent related
-            "com.melnykov",                     // FloatingActionButton related
+            "com.melnykov.fab",                 // FloatingActionButton related
             "com.getbase.floatingactionbutton", // FloatingActionButton related
             "com.helpshift",                    // help shift android sdk
             "com.crashlytcics",                 // firebase
-            "eu.siacs.conversations",           // open source XMPP/Jabber client
             "com.makeramen.roundedimageview",   // image view
             "com.nispok.snackbar",              // snackbar
             "org.omg",                          // extends to java
