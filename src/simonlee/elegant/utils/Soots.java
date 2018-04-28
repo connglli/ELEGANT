@@ -1,6 +1,8 @@
 package simonlee.elegant.utils;
 
-import simonlee.elegant.core.finder.CallSites;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import simonlee.elegant.finder.CallSites;
 import com.sun.istack.internal.NotNull;
 import soot.*;
 import soot.jimple.*;
@@ -18,7 +20,7 @@ import java.util.*;
 
 public class Soots {
 
-    private static Logger logger = new Logger(Soots.class);
+    private static Logger logger = LoggerFactory.getLogger(Soots.class);
 
     private static final String CLASS_STATIC_CODE_BLOCK_METHOD_NAME = "<clinit>";
     private static final String CLASS_CODE_BLOCK_METHOD_NAME        = "<init>";
@@ -183,7 +185,7 @@ public class Soots {
      */
     public static Set<Unit> findDominators(Unit u, SootMethod m, IInfoflowCFG icfg) {
         try {
-            // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+            // TODO - extends to inter-procedural, now only finds the intra- ones using the unit graph
             DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(m);
             MHGDominatorsFinder<Unit> mhgDominatorsFinder = new MHGDominatorsFinder<>(graph);
             return new HashSet<>(mhgDominatorsFinder.getDominators(u));
@@ -201,7 +203,7 @@ public class Soots {
      * @return     the immediate domonator in the icfg of the unit
      */
     public static Unit findImmediateDominator(Unit u, SootMethod m, IInfoflowCFG icfg) {
-        // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+        // TODO - extends to inter-procedural, now only finds the intra- ones using the unit graph
         return new MHGDominatorsFinder<>(icfg.getOrCreateUnitGraph(m))
                 .getImmediateDominator(u);
     }
@@ -215,7 +217,7 @@ public class Soots {
      * @return     the set of post domonators in the icfg of the unit
      */
     public static Set<Unit> findPostDominators(Unit u, SootMethod m, IInfoflowCFG icfg) {
-        // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+        // TODO - extends to inter-procedural, now only finds the intra- ones using the unit graph
         DirectedGraph<Unit> graph = icfg.getOrCreateUnitGraph(m);
         MHGPostDominatorsFinder<Unit> mhgPostDominatorsFinder = new MHGPostDominatorsFinder<>(graph);
         return new HashSet<>(mhgPostDominatorsFinder.getDominators(u));
@@ -230,7 +232,7 @@ public class Soots {
      * @return     the immediate post domonator in the icfg of the unit
      */
     public static Unit findImmediatePostDominator(Unit u, SootMethod m, IInfoflowCFG icfg) {
-        // TODO extends to inter-procedural, now only finds the intra- ones using the unit graph
+        // TODO - extends to inter-procedural, now only finds the intra- ones using the unit graph
         return new MHGPostDominatorsFinder<>(icfg.getOrCreateUnitGraph(m))
                 .getImmediateDominator(u);
     }
@@ -305,7 +307,7 @@ public class Soots {
         // firstly, we traverse each soot method's body, caches the invoking statements
         if (invokingStmtsCache.isEmpty()) {
             for (SootClass c : classes) {
-                // TODO a tool to filter 3rd-party libraries
+                // TODO - a tool to filter 3rd-party libraries
                 // These codes does not work for some debug-version apk, and actually, it does not work for
                 // the released ones. We need a 3rd-party library elimination tool in practice. But here, we
                 // simplify them. But for future use, we remain them here.
@@ -365,7 +367,7 @@ public class Soots {
         } else if (type.equals(PDGNode.Type.REGION)) {
             iterator = ((IRegion) n.getNode()).getUnitGraph().iterator();
         } else {
-            logger.w("Only REGION and CFGNODE are allowed");
+            logger.warn("Only REGION and CFGNODE are allowed");
         }
 
         return iterator;
@@ -384,7 +386,7 @@ public class Soots {
             SootMethod caller   = edge.src();
             Unit       callSite = edge.srcUnit();
 
-            // TODO a tool to filter 3rd-party libraries
+            // TODO - a tool to filter 3rd-party libraries
             // These codes does not work for some debug-version apk, and actually, it does not work for
             // the released ones. We need a 3rd-party library elimination tool in practice. But here, we
             // simplify them. But for future use, we remain them here.
@@ -430,7 +432,7 @@ public class Soots {
         Set<Unit> ret = new HashSet<>();
         SootClass c = null == m ? null : m.getDeclaringClass();
 
-        // TODO a tool to filter 3rd-party libraries
+        // TODO - a tool to filter 3rd-party libraries
         // skip 3rd-party
         if (null == m || null == c || isIn3rdPartyLibrary(c.getJavaPackageName())) {
             return new HashSet<>();
@@ -524,7 +526,7 @@ public class Soots {
         return ret;
     }
 
-    // TODO a 3rd-party libraries elimination tool, like LibScout
+    // TODO - a 3rd-party libraries elimination tool, like LibScout
     // isIn3rdPartyLibrary checks if the signature represented api is a 3rd-party one,
     // we implements them here with a black list
     private static boolean isIn3rdPartyLibrary(String signature) {

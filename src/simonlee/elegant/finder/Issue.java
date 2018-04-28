@@ -1,4 +1,4 @@
-package simonlee.elegant.core.finder;
+package simonlee.elegant.finder;
 
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.utils.PubSub;

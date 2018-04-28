@@ -1,7 +1,7 @@
-package simonlee.elegant.core.finder.plainfinder;
+package simonlee.elegant.finder.plainfinder;
 
 import simonlee.elegant.models.ApiContext;
-import simonlee.elegant.core.finder.Issue;
+import simonlee.elegant.finder.Issue;
 import simonlee.elegant.utils.CallPoint;
 
 import java.util.LinkedList;

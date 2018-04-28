@@ -1,7 +1,6 @@
-package simonlee.elegant.core.finder;
+package simonlee.elegant.reporter;
 
-import simonlee.elegant.Container;
-import simonlee.elegant.core.reporter.Reporter;
+import simonlee.elegant.finder.Issue;
 import simonlee.elegant.utils.PubSub;
 
 public abstract class AbstractIssueHandle implements PubSub.Handle {
@@ -9,10 +8,10 @@ public abstract class AbstractIssueHandle implements PubSub.Handle {
     // CallChain is just a intermediate representation of Information
     public static class CallChain extends Reporter.Information { }
 
-    private Container container;
+    private Reporter reporter;
 
-    public AbstractIssueHandle(Container container) {
-        this.container = container;
+    public AbstractIssueHandle(Reporter reporter) {
+        this.reporter = reporter;
     }
 
     @Override
@@ -23,7 +22,7 @@ public abstract class AbstractIssueHandle implements PubSub.Handle {
 
         CallChain callChain = issueToCallChain((Issue) message);
         if (null != callChain) {
-            container.submit(((Issue) message).getModel(), callChain);
+            reporter.submit(((Issue) message).getModel(), callChain);
         }
     }
 

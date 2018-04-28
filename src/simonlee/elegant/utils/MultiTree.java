@@ -4,10 +4,6 @@ import java.util.*;
 
 public class MultiTree<D> {
 
-    //
-    // TODO complete it
-    //
-
     public static class Node<D> {
 
         private D             data     = null;

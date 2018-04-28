@@ -1,12 +1,13 @@
-package simonlee.elegant.core.finder.plainfinder;
+package simonlee.elegant.finder.plainfinder;
 
-import simonlee.elegant.Container;
-import simonlee.elegant.core.environment.Environment;
-import simonlee.elegant.core.finder.AbstractFinder;
-import simonlee.elegant.core.finder.CallSites;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import simonlee.elegant.ELEGANT;
+import simonlee.elegant.environ.Environ;
+import simonlee.elegant.finder.AbstractFinder;
+import simonlee.elegant.finder.CallSites;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.models.api.ApiMethod;
-import simonlee.elegant.utils.Logger;
 import simonlee.elegant.utils.MultiTree;
 import simonlee.elegant.utils.Soots;
 import simonlee.elegant.utils.Strings;
@@ -87,7 +88,7 @@ import java.util.*;
  */
 public class PFinder extends AbstractFinder {
 
-    private Logger logger = new Logger(PFinder.class);
+    private Logger logger = LoggerFactory.getLogger(PFinder.class);
 
     // issue types definitions
     private static final int NO_FIC_ISSUES                 = 0x0;
@@ -100,19 +101,14 @@ public class PFinder extends AbstractFinder {
     // issueType is the fic issue type of the detected model
     private int issueType = NO_FIC_ISSUES;
 
-    public PFinder(Container container, Set<ApiContext> models) {
-        super(container, models);
-    }
-
-    @Override
-    protected void setUp() {
-        this.container.watchIssues(new PIssueHandle(this.container));
+    public PFinder(ELEGANT elegant, Set<ApiContext> models) {
+        super(elegant, models);
     }
 
     // We will use create_Tree in detection phase
     @Override
     protected boolean detect(ApiContext model) {
-        // TODO eliminate this condition to support iface and field
+        // TODO - eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -142,13 +138,13 @@ public class PFinder extends AbstractFinder {
     // We will use prune_Tree in validation phase
     @Override
     protected boolean validate(ApiContext model) {
-        // TODO eliminate this condition to support iface and field
+        // TODO - eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
 
-        CallGraph    cg   = this.container.getCallGraph();
-        IInfoflowCFG icfg = this.container.getInterproceduralCFG();
+        CallGraph    cg   = this.elegant.getCallGraph();
+        IInfoflowCFG icfg = this.elegant.getInterproceduralCFG();
 
         List<MultiTree.Node<CallSites>> nodesToBeCut     = new ArrayList<>();
         List<Unit>                      callSitesToBeCut = new ArrayList<>();
@@ -210,7 +206,7 @@ public class PFinder extends AbstractFinder {
     // We will use genPathes_Tree in generation phase
     @Override
     protected void generate(ApiContext model) {
-        // TODO eliminate this condition to support iface and field
+        // TODO - eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return;
         }
@@ -220,15 +216,15 @@ public class PFinder extends AbstractFinder {
                 callSitesTree.getRoot(), callSitesTree.getRoot(), model);
 
         // emitIssue the issues found
-        pIssues.forEach(i -> this.container.emitIssue(i));
+        pIssues.forEach(i -> this.elegant.emitIssue(i));
     }
 
     // ficIssueGetType checks whether the call site is ficable i.e. may generate FIC issues
     private int ficIssueGetType(ApiContext model) {
         // compiled sdk version, used to check whether an api
         // is accessible or not
-        final int targetSdk = this.container.getManifest().targetSdkVersion();
-        final int minSdk    = this.container.getManifest().getMinSdkVersion();
+        final int targetSdk = this.elegant.getManifest().targetSdkVersion();
+        final int minSdk    = this.elegant.getManifest().getMinSdkVersion();
 
         int result = NO_FIC_ISSUES;
 
@@ -250,14 +246,14 @@ public class PFinder extends AbstractFinder {
                 callee,
                 Scene.v().getCallGraph(),
                 Scene.v().getClasses(),
-                Arrays.asList(this.container.getAppPackage()));
+                Arrays.asList(this.elegant.getAppPackage()));
 
         // then we create a node for each caller method, and compute its call sites if necessary
         for (Map.Entry<SootMethod, CallSites> entry : callers.entrySet()) {
             MultiTree.Node<CallSites> callSitesNode = new MultiTree.Node<>(entry.getValue());
 
             // computing done until the K-INDIRECT-CALLER
-            if (level < Environment.ENV_K_INDIRECT_CALLER) {
+            if (level < Environ.ENV_K_INDIRECT_CALLER) {
                 computeCallSitesRoot(callSitesNode, level + 1);
             }
 
@@ -280,7 +276,7 @@ public class PFinder extends AbstractFinder {
                 return canHandleDeviceSpecificIssue(model, aSlicing) &&
                         canHandleNonDeviceSpecificIssue(model, aSlicing);
             default:
-                logger.w("Illegal issue type " + issueType);
+                logger.warn("Illegal issue type " + issueType);
                 return false;
         }
     }

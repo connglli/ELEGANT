@@ -1,7 +1,7 @@
-package simonlee.elegant.core.reporter;
+package simonlee.elegant.reporter;
 
-import simonlee.elegant.Container;
 import simonlee.elegant.ELEGANT;
+import simonlee.elegant.CLI;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.models.context.Context;
 import simonlee.elegant.utils.CallPoint;
@@ -121,8 +121,10 @@ public class Reporter {
         }
     }
 
-    // the container
-    private Container container;
+    // the elegant instance
+    private ELEGANT elegant;
+    // the command line options
+    private CLI.GlobalOptions cliOpts;
 
     // sections saves all information submitted
     private Map<ApiContext, Section> sections = new HashMap<>();
@@ -130,8 +132,9 @@ public class Reporter {
     private int callSiteCount = 0;
     private int callChainCount = 0;
 
-    public Reporter(Container container) {
-        this.container = container;
+    public Reporter(ELEGANT elegant, CLI.GlobalOptions cliOpts) {
+        this.elegant = elegant;
+        this.cliOpts = cliOpts;
     }
 
     /**
@@ -156,7 +159,7 @@ public class Reporter {
      * @param ps a print stream
      */
     public void report(PrintStream ps) {
-        ps.printf(REPORT_HEAD_TEMPLATE, ELEGANT.APP.NAME, ELEGANT.APP.VERSION, ELEGANT.AUTHOR.NAME);
+        ps.printf(REPORT_HEAD_TEMPLATE, CLI.APP.NAME, CLI.APP.VERSION, CLI.AUTHOR.NAME);
         ps.println();
 
         ps.printf(REPORT_SUMMARY_TEMPLATE, acpairCount, callSiteCount, callChainCount);
@@ -171,10 +174,10 @@ public class Reporter {
             ps.println();
         }
 
-        if (!this.container.isVerbose()) {
+        if (!this.cliOpts.isVerbose()) {
             ps.printf(REPORT_FOOT_VERBOSE_HELP_TEMPLATE);
         }
-        ps.printf(REPORT_FOOT_TEMPLATE, ELEGANT.AUTHOR.EMAIL);
+        ps.printf(REPORT_FOOT_TEMPLATE, CLI.AUTHOR.EMAIL);
     }
 
     private void reportApiContext(PrintStream ps, ApiContext acpair) {
@@ -203,7 +206,7 @@ public class Reporter {
         ps.printf(REPORT_API_USAGE_SUMMARY_TEMPLATE, section.getCallSiteCount(), section.getCallChainCount());
         ps.println();
 
-        if (this.container.isVerbose()) {
+        if (this.cliOpts.isVerbose()) {
             int i = 0;
             for (Map.Entry<CallPoint, List<Information>> part : section.getParts().entrySet()) {
                 List<Information> infos = part.getValue();

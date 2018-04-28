@@ -1,11 +1,10 @@
-package simonlee.elegant.core.finder;
+package simonlee.elegant.finder;
 
 
-import simonlee.elegant.Container;
-import simonlee.elegant.core.finder.plainfinder.PFinder;
-import simonlee.elegant.core.finder.reflectionfinder.RFinder;
+import simonlee.elegant.ELEGANT;
+import simonlee.elegant.finder.plainfinder.PFinder;
+import simonlee.elegant.finder.reflectionfinder.RFinder;
 import simonlee.elegant.models.ApiContext;
-import simonlee.elegant.utils.Logger;
 import soot.*;
 import soot.options.Options;
 
@@ -13,13 +12,11 @@ import java.util.*;
 
 public class Finder {
 
-    private Logger logger = new Logger(Finder.class);
+    // elegant is the container that finder is in
+    private ELEGANT elegant;
 
-    // container is the container that finder is in
-    private Container container;
-
-    public Finder(Container container) {
-        this.container = container;
+    public Finder(ELEGANT elegant) {
+        this.elegant = elegant;
     }
 
     public void run() {
@@ -31,16 +28,17 @@ public class Finder {
         soot.G.reset();
 
         // parse options
-        Options.v().parse(this.container.getOptions());
+        Options.v().parse(this.elegant.getOptions());
 
         // load classes
         Scene.v().loadNecessaryClasses();
 
         // fake main created by flowdroid
-        SootMethod entryPoint = this.container.getApp().getEntryPointCreator().createDummyMain();
+        SootMethod entryPoint = this.elegant.getApp().getEntryPointCreator().createDummyMain();
         Options.v().set_main_class(entryPoint.getSignature());
         Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
 
+        // run it
         PackManager.v().runPacks();
 
         // uncomment to generate a call graph viewer
@@ -48,14 +46,14 @@ public class Finder {
     }
 
     private void go() {
-        Set<ApiContext> models = this.container.getModels();
+        Set<ApiContext> models = this.elegant.getModels();
 
         // vanilla checking
-        AbstractFinder plainFinder = new PFinder(container, models);
+        AbstractFinder plainFinder = new PFinder(elegant, models);
         plainFinder.analyse();
 
         // reflection checking
-        AbstractFinder reflectionFinder = new RFinder(container, models);
+        AbstractFinder reflectionFinder = new RFinder(elegant, models);
         reflectionFinder.analyse();
     }
 

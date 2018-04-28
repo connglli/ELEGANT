@@ -33,7 +33,6 @@ public abstract class Api implements Serializable {
         }
 
         public String toString() {
-            // TODO maynot be compatible with soot
             return (this.pkg != null && !this.pkg.isEmpty() ? (this.pkg + ".") : "") + this.iface;
         }
 

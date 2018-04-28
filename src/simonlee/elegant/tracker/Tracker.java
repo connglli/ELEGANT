@@ -1,6 +1,6 @@
-package simonlee.elegant.core.tracker;
+package simonlee.elegant.tracker;
 
-import simonlee.elegant.core.finder.Issue;
+import simonlee.elegant.finder.Issue;
 import simonlee.elegant.utils.PubSub;
 
 import java.util.LinkedList;

@@ -1,10 +1,9 @@
-package simonlee.elegant.core.finder.reflectionfinder;
+package simonlee.elegant.finder.reflectionfinder;
 
-import simonlee.elegant.Container;
-import simonlee.elegant.core.finder.AbstractFinder;
+import simonlee.elegant.ELEGANT;
+import simonlee.elegant.finder.AbstractFinder;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.models.api.ApiMethod;
-import simonlee.elegant.utils.Logger;
 import simonlee.elegant.utils.Soots;
 import simonlee.elegant.utils.Strings;
 import soot.*;
@@ -17,8 +16,6 @@ import java.util.*;
 
 public class RFinder extends AbstractFinder {
 
-    private Logger logger = new Logger(RFinder.class);
-
     // REFLECTION_GET_METHOD_SIGNATURE is the soot signature of class.getMethod
     private static String REFLECTION_GET_METHOD_SIGNATURE =
             "<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>";
@@ -29,8 +26,8 @@ public class RFinder extends AbstractFinder {
     // validatedEdges stores all validated edges in validation phase, that will be emitted in generation phase
     private Set<Edge> validatedEdges;
 
-    public RFinder(Container container, Set<ApiContext> models) {
-        super(container, models);
+    public RFinder(ELEGANT elegant, Set<ApiContext> models) {
+        super(elegant, models);
 
         edges          = new HashSet<>();
         detectedEdges  = new HashSet<>();
@@ -42,13 +39,8 @@ public class RFinder extends AbstractFinder {
     }
 
     @Override
-    protected void setUp() {
-        this.container.watchIssues(new RIssueHandle(this.container));
-    }
-
-    @Override
     protected boolean detect(ApiContext model) {
-        // TODO eliminate this condition to support iface and field
+        // TODO - eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -95,7 +87,7 @@ public class RFinder extends AbstractFinder {
 
     @Override
     protected boolean validate(ApiContext model) {
-        // TODO eliminate this condition to support iface and field
+        // TODO - eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return false;
         }
@@ -180,7 +172,7 @@ public class RFinder extends AbstractFinder {
 
     @Override
     protected void generate(ApiContext model) {
-        // TODO eliminate this condition to support iface and field
+        // TODO - eliminate this condition to support iface and field
         if (!(model.getApi() instanceof ApiMethod)) {
             return ;
         }
@@ -195,7 +187,7 @@ public class RFinder extends AbstractFinder {
                 callSiteUnit.getJavaSourceStartColumnNumber(),
                 caller.getName());
 
-            this.container.emitIssue(rIssue);
+            this.elegant.emitIssue(rIssue);
         }
     }
 

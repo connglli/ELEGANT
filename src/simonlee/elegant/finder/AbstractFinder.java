@@ -1,19 +1,19 @@
-package simonlee.elegant.core.finder;
+package simonlee.elegant.finder;
 
-import simonlee.elegant.Container;
+import simonlee.elegant.ELEGANT;
 import simonlee.elegant.models.ApiContext;
 
 import java.util.Set;
 
 public abstract class AbstractFinder {
 
-    protected Container container;
+    protected ELEGANT elegant;
 
     // models are all ApiContext models
     protected Set<ApiContext> models;
 
-    public AbstractFinder(Container container, Set<ApiContext> models) {
-        this.container = container;
+    public AbstractFinder(ELEGANT elegant, Set<ApiContext> models) {
+        this.elegant = elegant;
         this.models = models;
         setUp();
     }

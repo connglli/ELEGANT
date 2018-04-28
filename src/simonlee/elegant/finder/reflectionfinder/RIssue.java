@@ -1,7 +1,7 @@
-package simonlee.elegant.core.finder.reflectionfinder;
+package simonlee.elegant.finder.reflectionfinder;
 
 import simonlee.elegant.models.ApiContext;
-import simonlee.elegant.core.finder.Issue;
+import simonlee.elegant.finder.Issue;
 
 
 public class RIssue extends Issue {

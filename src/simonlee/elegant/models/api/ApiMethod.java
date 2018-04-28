@@ -56,7 +56,6 @@ public class ApiMethod extends Api {
 
     @Override
     public String getSignature() {
-        // TODO maynot be compatible with soot
         StringBuilder params = new StringBuilder();
 
         if (this.paramList != null && !this.paramList.isEmpty()) {

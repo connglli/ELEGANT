@@ -43,7 +43,6 @@ public class ApiField extends Api {
 
     @Override
     public String getSignature() {
-        // TODO maynot be compatible with soot
         return "<" + this.pkg + '.' + this.iface + ": " + this.type + " " + this.field + ">";
     }
 

@@ -1,14 +1,13 @@
-package simonlee.elegant.core.finder.plainfinder;
+package simonlee.elegant.reporter;
 
-import simonlee.elegant.Container;
-import simonlee.elegant.core.finder.AbstractIssueHandle;
-import simonlee.elegant.core.finder.Issue;
+import simonlee.elegant.finder.Issue;
+import simonlee.elegant.finder.plainfinder.PIssue;
 import simonlee.elegant.utils.CallPoint;
 
 public class PIssueHandle extends AbstractIssueHandle {
 
-    public PIssueHandle(Container container) {
-        super(container);
+    public PIssueHandle(Reporter reporter) {
+        super(reporter);
     }
 
     @Override

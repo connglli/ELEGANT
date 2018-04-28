@@ -1,17 +1,13 @@
-package simonlee.elegant.core.finder.reflectionfinder;
+package simonlee.elegant.reporter;
 
-import simonlee.elegant.Container;
-import simonlee.elegant.core.finder.AbstractIssueHandle;
-import simonlee.elegant.core.finder.Issue;
+import simonlee.elegant.finder.Issue;
+import simonlee.elegant.finder.reflectionfinder.RIssue;
 import simonlee.elegant.utils.CallPoint;
-import simonlee.elegant.utils.Logger;
 
 public class RIssueHandle extends AbstractIssueHandle {
 
-    private static final Logger logger = new Logger(RIssueHandle.class);
-
-    public RIssueHandle(Container container) {
-        super(container);
+    public RIssueHandle(Reporter reporter) {
+        super(reporter);
     }
 
     @Override

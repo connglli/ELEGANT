@@ -1,4 +1,4 @@
-package simonlee.elegant.core.finder;
+package simonlee.elegant.finder;
 
 import soot.SootMethod;
 import soot.Unit;
