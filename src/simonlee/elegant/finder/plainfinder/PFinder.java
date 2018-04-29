@@ -171,7 +171,7 @@ public class PFinder extends AbstractFinder {
             callSitesToBeCut.clear();
 
             for (Unit callSite : callSites) {
-                Set<Unit> slicing = Soots.findBackwardSlicing(callSite, caller, cg, icfg);
+                Set<Unit> slicing = Soots.findBackwardSlicing(callSite, caller, cg, icfg, this.elegant.getD3Algo());
                 for (Unit aSlicing : slicing) {
                     if (canHandleIssue(model, issueType, aSlicing)) {
                         callSitesToBeCut.add(callSite);
@@ -246,7 +246,7 @@ public class PFinder extends AbstractFinder {
                 callee,
                 Scene.v().getCallGraph(),
                 Scene.v().getClasses(),
-                Arrays.asList(this.elegant.getAppPackage()));
+                this.elegant.getD3Algo());
 
         // then we create a node for each caller method, and compute its call sites if necessary
         for (Map.Entry<SootMethod, CallSites> entry : callers.entrySet()) {

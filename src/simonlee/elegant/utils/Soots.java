@@ -2,6 +2,7 @@ package simonlee.elegant.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import simonlee.elegant.d3algo.AbstractD3Algo;
 import simonlee.elegant.finder.CallSites;
 import com.sun.istack.internal.NotNull;
 import soot.*;
@@ -240,13 +241,14 @@ public class Soots {
     /**
      * findBackwardSlicing finds all the backward slicing of a unit
      *
-     * @param u    the unit who wants to find its backward slicing
-     * @param m    the method where the unit lives at
-     * @param cg   the call graph where the unit lives at
-     * @param icfg the icfg where the unit lives at
-     * @return     the backward slicing of the unit in cg and icfg
+     * @param u      the unit who wants to find its backward slicing
+     * @param m      the method where the unit lives at
+     * @param cg     the call graph where the unit lives at
+     * @param icfg   the icfg where the unit lives at
+     * @param d3Algo the d3 algo
+     * @return       the backward slicing of the unit in cg and icfg
      */
-    public static Set<Unit> findBackwardSlicing(Unit u, SootMethod m, CallGraph cg, IInfoflowCFG icfg) {
+    public static Set<Unit> findBackwardSlicing(Unit u, SootMethod m, CallGraph cg, IInfoflowCFG icfg, AbstractD3Algo d3Algo) {
         Set<Unit> backwardSlicing = new HashSet<>();
 
         // a slicing includes the data-flow dependencies and control-flow dependencies
@@ -254,7 +256,7 @@ public class Soots {
         // secondly we compute the control-flow dependencies using the inter-procedural control flow graph
 
         // 1. data-flow dependencies
-        Set<Unit> backwardDataBackwardDependencies = findBackwardDataDependencies(u, m, cg);
+        Set<Unit> backwardDataBackwardDependencies = findBackwardDataDependencies(u, m, cg, d3Algo);
         backwardSlicing.addAll(backwardDataBackwardDependencies);
 
         // 2. control-flow dependencies
@@ -262,7 +264,7 @@ public class Soots {
         for (Unit d : dominators) {
             if (!backwardSlicing.contains(d)) {
                 // find data-flow dependencies of this dominator
-                backwardSlicing.addAll(findBackwardDataDependencies(d, icfg.getMethodOf(d), cg));
+                backwardSlicing.addAll(findBackwardDataDependencies(d, icfg.getMethodOf(d), cg, d3Algo));
             }
         }
         backwardSlicing.addAll(dominators);
@@ -296,29 +298,18 @@ public class Soots {
      * @param callee  the callee who wants to find its call sites
      * @param cg      the call graph needed traversing
      * @param classes the classes needed traversing
-     * @param pkgs    the pkgs needed traversing
+     * @param d3Algo  the d3 algo
      * @return        the call sites of callee
      */
     public static Map<SootMethod, CallSites> findCallSites(
             SootMethod callee,
             CallGraph cg,
             Chain<SootClass> classes,
-            List<String> pkgs) {
+            AbstractD3Algo d3Algo) {
         // firstly, we traverse each soot method's body, caches the invoking statements
         if (invokingStmtsCache.isEmpty()) {
             for (SootClass c : classes) {
-                // TODO - a tool to filter 3rd-party libraries
-                // These codes does not work for some debug-version apk, and actually, it does not work for
-                // the released ones. We need a 3rd-party library elimination tool in practice. But here, we
-                // simplify them. But for future use, we remain them here.
-                if (false) {
-                    boolean doAnalysis = false;
-                    for (String s : pkgs) { if (c.getJavaPackageName().startsWith(s)) { doAnalysis = true; break; } }
-                    if (!doAnalysis) { continue; }
-                } else {
-                    // filter some frequently used libraries
-                    if (isIn3rdPartyLibrary(c.getJavaPackageName())) { continue; }
-                }
+                if (d3Algo.is3rdPartyLibClass(c)) { continue; }
 
                 for (SootMethod m : c.getMethods()) {
                     try {
@@ -341,7 +332,7 @@ public class Soots {
         }
 
         // then we get real
-        return doFindCallSites(callee, cg);
+        return doFindCallSites(callee, cg, d3Algo);
     }
 
     /**
@@ -376,7 +367,7 @@ public class Soots {
     // doFindCallSites finds the relatively complete set of call sites of a callee, by:
     // 1. the built-in call graph
     // 2. the classes cached in invokingStmtsCache
-    private static Map<SootMethod, CallSites> doFindCallSites(SootMethod callee, CallGraph cg) {
+    private static Map<SootMethod, CallSites> doFindCallSites(SootMethod callee, CallGraph cg, AbstractD3Algo d3Algo) {
         Map<SootMethod, CallSites> callers = new HashMap<>(1);
 
         // firstly we get all callers from the incomplete call graph built in soot
@@ -386,12 +377,8 @@ public class Soots {
             SootMethod caller   = edge.src();
             Unit       callSite = edge.srcUnit();
 
-            // TODO - a tool to filter 3rd-party libraries
-            // These codes does not work for some debug-version apk, and actually, it does not work for
-            // the released ones. We need a 3rd-party library elimination tool in practice. But here, we
-            // simplify them. But for future use, we remain them here.
             if (null == caller || null == caller.getDeclaringClass() ||
-                    isIn3rdPartyLibrary(caller.getDeclaringClass().getJavaPackageName())) {
+                    d3Algo.is3rdPartyLibMethod(caller)) {
                 continue ;
             } else if (callers.containsKey(caller)) {
                 callers.get(caller).addCallSite(callSite);
@@ -418,8 +405,8 @@ public class Soots {
     }
 
     // findBackwardDataDependencies finds the data-flow dependencies of u located at m in the call graph
-    private static Set<Unit> findBackwardDataDependencies(Unit u, SootMethod m, CallGraph cg) {
-        return findBackwardDataDependenciesExcept(u, m, cg, new HashSet<>());
+    private static Set<Unit> findBackwardDataDependencies(Unit u, SootMethod m, CallGraph cg, AbstractD3Algo d3Algo) {
+        return findBackwardDataDependenciesExcept(u, m, cg, new HashSet<>(), d3Algo);
     }
 
     // findBackwardDataDependenciesExcept finds the data-flow dependencies of u located at m in the call graph,
@@ -428,13 +415,13 @@ public class Soots {
             Unit u,
             SootMethod m,
             CallGraph cg,
-            Set<Value> exValues) {
+            Set<Value> exValues,
+            AbstractD3Algo d3Algo) {
         Set<Unit> ret = new HashSet<>();
         SootClass c = null == m ? null : m.getDeclaringClass();
 
-        // TODO - a tool to filter 3rd-party libraries
         // skip 3rd-party
-        if (null == m || null == c || isIn3rdPartyLibrary(c.getJavaPackageName())) {
+        if (null == m || null == c || d3Algo.is3rdPartyLibClass(c)) {
             return new HashSet<>();
         }
 
@@ -464,7 +451,7 @@ public class Soots {
                 // when the redefined statement is redefined by a method arg, we continually track the caller
                 if (uu instanceof IdentityStmt && ((IdentityStmt) uu).getRightOp() instanceof ParameterRef) {
                     int argIdx = ((ParameterRef) ((IdentityStmt) uu).getRightOp()).getIndex();
-                    Map<SootMethod, CallSites> callSites = doFindCallSites(m, cg);
+                    Map<SootMethod, CallSites> callSites = doFindCallSites(m, cg, d3Algo);
 
                     for (Map.Entry<SootMethod, CallSites> entry : callSites.entrySet()) {
                         // skip recursions
@@ -476,11 +463,11 @@ public class Soots {
                             Value      trackedArg    = ((Stmt) callSite).getInvokeExpr().getArg(argIdx);
                             Set<Value> untrackedArgs = new HashSet<>(((Stmt) callSite).getInvokeExpr().getArgs());
                             untrackedArgs.remove(trackedArg);
-                            ret.addAll(findBackwardDataDependenciesExcept(callSite, entry.getKey(), cg, untrackedArgs));
+                            ret.addAll(findBackwardDataDependenciesExcept(callSite, entry.getKey(), cg, untrackedArgs, d3Algo));
                         }
                     }
                 } else {
-                    ret.addAll(findBackwardDataDependenciesExcept(uu, m, cg, new HashSet<>()));
+                    ret.addAll(findBackwardDataDependenciesExcept(uu, m, cg, new HashSet<>(), d3Algo));
                 }
             }
         }
@@ -524,46 +511,6 @@ public class Soots {
         }
 
         return ret;
-    }
-
-    // TODO - a 3rd-party libraries elimination tool, like LibScout
-    // isIn3rdPartyLibrary checks if the signature represented api is a 3rd-party one,
-    // we implements them here with a black list
-    private static boolean isIn3rdPartyLibrary(String signature) {
-        List<String> blackList = Arrays.asList(
-            "android",                          // android official
-            "java",                             // java official
-            "com.jakewharton",                  // butterknife
-            "com.github",                       // github related, glide, etc.
-            "com.squareup",                     // okhttp, retrofit, etc.
-            "com.google",                       // google related, gson, guava, etc.
-            "com.handmark.pulltorefresh",       // Android Pull-to-Refresh
-            "com.facebook",                     // facebook related sdk
-            "com.afollestad.materialdialogs",   // material dialogs
-            "com.bumptech.glide",               // glide
-            "com.viewpagerindicator",           // ViewPager related
-            "com.actionbarsherlock",            // ActionBar related
-            "org.openintents",                  // Intent related
-            "com.melnykov.fab",                 // FloatingActionButton related
-            "com.getbase.floatingactionbutton", // FloatingActionButton related
-            "com.helpshift",                    // help shift android sdk
-            "com.crashlytcics",                 // firebase
-            "com.makeramen.roundedimageview",   // image view
-            "com.nispok.snackbar",              // snackbar
-            "org.omg",                          // extends to java
-            "org.w3c",                          // extends to java
-            "org.xml",                          // extends to java
-            "org.apache",                       // apache organization
-            "com.sun",                          // sun
-            "org.eclipse",                      // eclipse
-            "rx"                                // reactivex java
-        );
-
-        for (String s : blackList) {
-            if (signature.startsWith(s)) { return true; }
-        }
-
-        return false;
     }
 
 }

@@ -1,5 +1,7 @@
 package simonlee.elegant;
 
+import simonlee.elegant.d3algo.AbstractD3Algo;
+import simonlee.elegant.d3algo.D3AlgoFactory;
 import simonlee.elegant.environ.OptParser;
 import simonlee.elegant.environ.Environ;
 import simonlee.elegant.finder.Finder;
@@ -19,10 +21,23 @@ import java.util.Set;
 // what they know is only the Container.
 public class ELEGANT {
 
+    // default options to ELEGANT
+    public static class DEFAULT_OPTS {
+        // required
+        public static final String APK_PATH = null;
+        // required
+        public static final String MODELS_PATH = null;
+        // required
+        public static final String PLATFORMS_PATH = null;
+        // optional
+        public static final String D3_ALGO = D3AlgoFactory.D3_NONE;
+    }
+
     public static class Builder {
-        private String apkPath       = "";
-        private String modelsPath    = "";
-        private String platformsPath = "";
+        private String  apkPath       = DEFAULT_OPTS.APK_PATH;
+        private String  modelsPath    = DEFAULT_OPTS.MODELS_PATH;
+        private String  platformsPath = DEFAULT_OPTS.PLATFORMS_PATH;
+        private String  d3Algo        = DEFAULT_OPTS.D3_ALGO;
 
         public Builder withApkPath(String apkPath) {
             this.apkPath = apkPath;
@@ -39,6 +54,11 @@ public class ELEGANT {
             return this;
         }
 
+        public Builder withD3Algo(String d3Algo) {
+            this.d3Algo = d3Algo;
+            return this;
+        }
+
         public ELEGANT build() {
             if ("".equals(apkPath)) {
                 throw new RuntimeException(
@@ -50,14 +70,14 @@ public class ELEGANT {
                 throw new RuntimeException(
                         "path to your platforms is missed, remember to use builder.withPlatformsPath(...)");
             } else {
-                return new ELEGANT(apkPath, modelsPath, platformsPath);
+                return new ELEGANT(apkPath, modelsPath, platformsPath, d3Algo);
             }
         }
     }
 
     // soot-unaware container-unaware components
-    private OptParser optParser;
-    private Tracker   tracker;
+    private OptParser      optParser;
+    private Tracker        tracker;
 
     // soot-aware container-aware components
     private Finder  finder;
@@ -72,15 +92,29 @@ public class ELEGANT {
     }
 
     private ELEGANT(String apkPath, String modelsPath, String platformsPath) {
+        this(apkPath, modelsPath, platformsPath, DEFAULT_OPTS.D3_ALGO);
+    }
+
+    private ELEGANT(String apkPath, String modelsPath, String platformsPath, String d3Algo) {
         optParser.putOpt(OptParser.OPT_APK_PATH, apkPath);
         optParser.putOpt(OptParser.OPT_MODELS_PATH, modelsPath);
         optParser.putOpt(OptParser.OPT_PLATFORMS_PATH, platformsPath);
+        optParser.putOpt(OptParser.OPT_D3_ALGO, d3Algo);
     }
 
     public void run() {
         optParser.parse();
-        finder.run();
+        finder.find();
     }
+
+//    public void runLifeCycle() {
+//        this.willParseOpts();
+//        this.didParseOpts();
+//        this.willDetect3rdParty();
+//        this.didDetect3rdParty();
+//        this.willFindIssues();
+//        this.didFindIssues();
+//    }
 
     // delegate Environment
 
@@ -98,6 +132,10 @@ public class ELEGANT {
 
     public Set<ApiContext> getModels() {
         return environ.getModels();
+    }
+
+    public AbstractD3Algo getD3Algo() {
+        return environ.getD3Algo();
     }
 
     public IInfoflowCFG getInterproceduralCFG() {

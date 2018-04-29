@@ -2,6 +2,7 @@ package simonlee.elegant.environ;
 
 
 import simonlee.elegant.ELEGANT;
+import simonlee.elegant.d3algo.AbstractD3Algo;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.utils.PubSub;
 import soot.Scene;
@@ -53,6 +54,7 @@ public class Environ implements PubSub.Handle {
     private Set<ApiContext>  models;
     private SetupApplication app;
     private ProcessManifest  manifest;
+    private AbstractD3Algo   d3Algo;
     private IInfoflowCFG     interproceduralCFG;
 
     public Environ(ELEGANT elegant) {
@@ -72,6 +74,10 @@ public class Environ implements PubSub.Handle {
 
     public ProcessManifest getManifest() {
         return manifest;
+    }
+
+    public AbstractD3Algo getD3Algo() {
+        return d3Algo;
     }
 
     public Set<ApiContext> getModels() {
@@ -114,6 +120,9 @@ public class Environ implements PubSub.Handle {
                 break;
             case OptParser.OPT_PLATFORMS_PATH:
                 this.options[6] = (String) bundle.getV(); // TODO - 6 should not be hard coded
+                break;
+            case OptParser.OPT_D3_ALGO:
+                this.d3Algo = (AbstractD3Algo) bundle.getExtra(OptParser.OPT_BDL_D3_ALGO_ALGO);
                 break;
             default: /* we will pass unknown configs */
                 break;

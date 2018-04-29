@@ -19,7 +19,7 @@ public class Finder {
         this.elegant = elegant;
     }
 
-    public void run() {
+    public void find() {
         this.init();
         this.go();
     }
