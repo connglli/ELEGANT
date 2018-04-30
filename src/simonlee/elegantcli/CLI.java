@@ -1,10 +1,12 @@
-package simonlee.elegant;
+package simonlee.elegantcli;
 
 import org.apache.commons.cli.*;
+import simonlee.elegant.ELEGANT;
+import simonlee.elegant.Resources;
 import simonlee.elegant.d3algo.D3AlgoFactory;
-import simonlee.elegant.reporter.PIssueHandle;
-import simonlee.elegant.reporter.RIssueHandle;
-import simonlee.elegant.reporter.Reporter;
+import simonlee.elegantcli.reporter.PIssueHandle;
+import simonlee.elegantcli.reporter.RIssueHandle;
+import simonlee.elegantcli.reporter.Reporter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -129,7 +131,7 @@ public class CLI {
     }
 
     // the usage header
-    public static final String USAGE_HEADER = "java -jar ele-cli.jar [options ...] <apk>";
+    public static final String USAGE_HEADER = "java -jar eleant-cli.jar [options ...] <apk>";
 
     // unparsed options
     private String[] unparsedOpts;

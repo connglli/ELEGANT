@@ -33,6 +33,7 @@ public class ELEGANT {
         public static final String D3_ALGO = D3AlgoFactory.D3_NONE;
     }
 
+    // Builder helps to create an ELEGANT instance more easily
     public static class Builder {
         private String  apkPath       = DEFAULT_OPTS.APK_PATH;
         private String  modelsPath    = DEFAULT_OPTS.MODELS_PATH;
@@ -91,30 +92,10 @@ public class ELEGANT {
         finder   = new Finder(this);
     }
 
-    private ELEGANT(String apkPath, String modelsPath, String platformsPath) {
-        this(apkPath, modelsPath, platformsPath, DEFAULT_OPTS.D3_ALGO);
-    }
-
-    private ELEGANT(String apkPath, String modelsPath, String platformsPath, String d3Algo) {
-        optParser.putOpt(OptParser.OPT_APK_PATH, apkPath);
-        optParser.putOpt(OptParser.OPT_MODELS_PATH, modelsPath);
-        optParser.putOpt(OptParser.OPT_PLATFORMS_PATH, platformsPath);
-        optParser.putOpt(OptParser.OPT_D3_ALGO, d3Algo);
-    }
-
     public void run() {
         optParser.parse();
         finder.find();
     }
-
-//    public void runLifeCycle() {
-//        this.willParseOpts();
-//        this.didParseOpts();
-//        this.willDetect3rdParty();
-//        this.didDetect3rdParty();
-//        this.willFindIssues();
-//        this.didFindIssues();
-//    }
 
     // delegate Environment
 
@@ -184,5 +165,18 @@ public class ELEGANT {
 
     public void unwatchIssues(int handler) {
         tracker.unsubscribe(handler);
+    }
+
+    // constructors
+
+    private ELEGANT(String apkPath, String modelsPath, String platformsPath) {
+        this(apkPath, modelsPath, platformsPath, DEFAULT_OPTS.D3_ALGO);
+    }
+
+    private ELEGANT(String apkPath, String modelsPath, String platformsPath, String d3Algo) {
+        optParser.putOpt(OptParser.OPT_APK_PATH, apkPath);
+        optParser.putOpt(OptParser.OPT_MODELS_PATH, modelsPath);
+        optParser.putOpt(OptParser.OPT_PLATFORMS_PATH, platformsPath);
+        optParser.putOpt(OptParser.OPT_D3_ALGO, d3Algo);
     }
 }

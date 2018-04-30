@@ -1,7 +1,7 @@
-package simonlee.elegant.reporter;
+package simonlee.elegantcli.reporter;
 
 import simonlee.elegant.ELEGANT;
-import simonlee.elegant.CLI;
+import simonlee.elegantcli.CLI;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.models.context.Context;
 import simonlee.elegant.utils.CallPoint;
