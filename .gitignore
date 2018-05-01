@@ -72,9 +72,10 @@ fabric.properties
 
 # self project
 # Compiled class file
-out/*
+out
 *.class
 *.jimple
 **/META-INF/*
-assets/android-platforms/**/android.jar
-test/**/*.apk
+assets
+test
+sootOutput

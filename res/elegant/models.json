@@ -1,0 +1,1796 @@
+[
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.media",
+      "iface": "AudioManager",
+      "method": "setRouting",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 1,
+      "max_api_level": 3
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "onBackPressed",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "overridePendingTransition",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "View",
+      "method": "setScrollbarFadingEnabled",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.os",
+      "iface": "HandlerThread",
+      "method": "quit",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.media",
+      "iface": "AudioManager",
+      "method": "requestAudioFocus",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.media",
+          "iface": "AudioManager$OnAudioFocusChangeListener"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 8,
+      "max_api_level": 25
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.media",
+      "iface": "AudioManager",
+      "method": "requestAudioFocus",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.media",
+          "iface": "AudioFocusRequest"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 26
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "Context",
+      "method": "getExternalCacheDir",
+      "ret": {
+        "pkg": "java.io",
+        "iface": "File"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 8
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "Display",
+      "method": "getRotation",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 8
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "AbsListView",
+      "method": "setOverScrollMode",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 9
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.os",
+      "iface": "Environment",
+      "method": "isExternalStorageRemovable",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 9
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.os",
+      "iface": "Environment",
+      "method": "isExternalStorageRemovable",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": [
+        {
+          "pkg": "java.io",
+          "iface": "File"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 21
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "getActionBar",
+      "ret": {
+        "pkg": "android.app",
+        "iface": "ActionBar"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "MenuItem",
+      "method": "setShowAsAction",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "invalidateOptionsMenu",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.database.sqlite",
+      "iface": "SQLiteDatabase",
+      "method": "openDatabase",
+      "ret": {
+        "pkg": "android.database.sqlite",
+        "iface": "SQLiteDatabase"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "android.database.sqlite",
+          "iface": "SQLiteDatabase$CursorFactory"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "android.database",
+          "iface": "DatabaseErrorHandler"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ClipboardManager",
+      "method": "setText",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "CharSequence"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "GridView",
+      "method": "getNumColumns",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 11,
+      "important": "min_api_level",
+      "message": "this api is not a well-designed api in some developer's view, you may not be able to get the right one. Check https://code.videolan.org/videolan/vlc-android/commit/fb93861845e4c539f657a21776216c5631b5cc29 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.appwidget",
+      "iface": "AppWidgetManager",
+      "method": "partiallyUpdateAppWidget",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "android.widget",
+          "iface": "RemoteViews"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.speech.tts",
+      "iface": "TextToSpeech",
+      "method": "setOnUtteranceProgressListener",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.speech.tts",
+          "iface": "UtteranceProgressListener"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 15
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.database.sqlite",
+      "iface": "SQLiteDatabase",
+      "method": "disableWriteAheadLogging",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.database.sqlite",
+      "iface": "SQLiteDatabase",
+      "method": "deleteDatabase",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": [
+        {
+          "pkg": "java.io",
+          "iface": "File"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "AlarmManager",
+      "method": "setExact",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "long"
+        },
+        {
+          "pkg": "android.app",
+          "iface": "PendingIntent"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 19
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "AlarmManager",
+      "method": "set",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "long"
+        },
+        {
+          "pkg": "android.app",
+          "iface": "PendingIntent"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 19,
+      "important": "min_api_level",
+      "message": "Beginning in API 19, the trigger time passed to this method is treated as inexact: the alarm will not be delivered before this time, but may be deferred and delivered some time later. Check https://developer.android.com/reference/android/app/AlarmManager.html#set(int,%20long,%20android.app.PendingIntent) for more help."
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.net",
+      "iface": "ConnectivityManager",
+      "method": "getBackgroundDataSetting",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 3,
+      "max_api_level": 13
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.content",
+      "iface": "Intent",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "EXTRA_REMOTE_INTENT_TOKEN"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider",
+      "iface": "SyncStateContract$Constants"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.os",
+      "iface": "AsyncTask",
+      "method": "execute",
+      "ret": {
+        "pkg": "android.os",
+        "iface": "AsyncTask"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "Object[]"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11,
+      "important": "min_api_level",
+      "message": "AsyncTasks were executed serially on a single background thread. Starting with DONUT, this was changed to a pool of threads allowing multiple tasks to operate in parallel. Starting HONEYCOMB, tasks are back to being executed on a single thread to avoid common application errors caused by parallel execution. If you truly want parallel execution, you can use the executeOnExecutor(Executor, Params...) version of this method with THREAD_POOL_EXECUTOR. Check https://developer.android.com/reference/android/os/AsyncTask.html?hl=zh-cn#execute(Params...) for more help."
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.os",
+      "iface": "AsyncTask",
+      "method": "execute",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "Runnable"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11,
+      "important": "min_api_level",
+      "message": "AsyncTasks were executed serially on a single background thread. Starting with DONUT, this was changed to a pool of threads allowing multiple tasks to operate in parallel. Starting HONEYCOMB, tasks are back to being executed on a single thread to avoid common application errors caused by parallel execution. If you truly want parallel execution, you can use the executeOnExecutor(Executor, Params...) version of this method with THREAD_POOL_EXECUTOR. Check https://developer.android.com/reference/android/os/AsyncTask.html?hl=zh-cn#execute(Params...) for more help."
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.os",
+      "iface": "AsyncTask",
+      "method": "executeOnExecutor",
+      "ret": {
+        "pkg": "android.os",
+        "iface": "AsyncTask"
+      },
+      "paramList": [
+        {
+          "pkg": "java.util.concurrent",
+          "iface": "Executor"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "Object[]"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.net",
+      "iface": "Uri",
+      "method": "getQueryParameterNames",
+      "ret": {
+        "pkg": "java.util",
+        "iface": "Set"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "ArrayAdapter",
+      "method": "addAll",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "Object[]"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "ArrayAdapter",
+      "method": "addAll",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.util",
+          "iface": "Collection"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.appwidget",
+      "iface": "AppWidgetManager",
+      "method": "partiallyUpdateAppWidget",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int[]"
+        },
+        {
+          "pkg": "android.widget",
+          "iface": "RemoteViews"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.inputmethodservice",
+      "iface": "KeyboardView",
+      "method": "invalidateAllKeys",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": []
+    },
+    "context": {
+      "min_api_level": 4
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "View",
+      "method": "setFocusableInTouchMode",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 8,
+      "important": "min_api_level",
+      "message": "this api is recommended to be used together with `void setFocusable(boolean)` when your app is running on Froyo(2.2) or lower. Check https://issuetracker.google.com/issues/36908479 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "RemoteViews",
+      "method": "setViewVisibility",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 8,
+      "important": "min_api_level",
+      "message": "this api is not recommended to be used together with progress bar when your app is running on Froyo(2.2) or lower. If you have to use it on Froyo(2.2) or lower, try to wrap the progress bar in a LinearLayout or FrameLayout and use setViewVisibility() to make the Layout INVISIBLE/GONE instead of the progress bar. Check https://issuetracker.google.com/issues/36921090 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ContentProvider",
+      "method": "query",
+      "ret": {
+        "pkg": "android.database",
+        "iface": "Cursor"
+      },
+      "paramList": [
+        {
+          "pkg": "android.net",
+          "iface": "Uri"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String[]"
+        },
+        {
+          "pkg": "android.os",
+          "iface": "Bundle"
+        },
+        {
+          "pkg": "android.os",
+          "iface": "CancellationSignal"
+        }
+      ]
+    },
+    "context": {
+      "max_api_level": 23,
+      "important": "max_api_level",
+      "message": "this api is recommended to be used together with the permission controll when your app is running on android 23 or higher. Check https://github.com/ankidroid/Anki-Android/commit/f5fab36ce309ce2d1e327cfc3fb59db85c609f96 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ContentProvider",
+      "method": "update",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.net",
+          "iface": "Uri"
+        },
+        {
+          "pkg": "android.content",
+          "iface": "ContentValues"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String[]"
+        }
+      ]
+    },
+    "context": {
+      "max_api_level": 23,
+      "important": "max_api_level",
+      "message": "this api is recommended to be used together with the permission controll when your app is running on android 23 or higher. Check https://github.com/ankidroid/Anki-Android/commit/f5fab36ce309ce2d1e327cfc3fb59db85c609f96 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ContentProvider",
+      "method": "insert",
+      "ret": {
+        "pkg": "android.net",
+        "iface": "Uri"
+      },
+      "paramList": [
+        {
+          "pkg": "android.net",
+          "iface": "Uri"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String[]"
+        }
+      ]
+    },
+    "context": {
+      "max_api_level": 23,
+      "important": "max_api_level",
+      "message": "this api is recommended to be used together with the permission controll when your app is running on android 23 or higher. Check https://github.com/ankidroid/Anki-Android/commit/f5fab36ce309ce2d1e327cfc3fb59db85c609f96 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ContentProvider",
+      "method": "delete",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.net",
+          "iface": "Uri"
+        },
+        {
+          "pkg": "android.content",
+          "iface": "ContentValues"
+        }
+      ]
+    },
+    "context": {
+      "max_api_level": 23,
+      "important": "max_api_level",
+      "message": "this api is recommended to be used together with the permission controll when your app is running on android 23 or higher. Check https://github.com/ankidroid/Anki-Android/commit/f5fab36ce309ce2d1e327cfc3fb59db85c609f96 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ContentProvider",
+      "method": "bulkInsert",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.net",
+          "iface": "Uri"
+        },
+        {
+          "pkg": "android.content",
+          "iface": "ContentValues[]"
+        }
+      ]
+    },
+    "context": {
+      "max_api_level": 23,
+      "important": "max_api_level",
+      "message": "this api is recommended to be used together with the permission controll when your app is running on android 23 or higher. Check https://github.com/ankidroid/Anki-Android/commit/f5fab36ce309ce2d1e327cfc3fb59db85c609f96 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "ContentValues",
+      "method": "put",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "Short"
+        }
+      ]
+    },
+    "context": {
+      "bad_devices": [
+        "saga"
+      ],
+      "important": "bad_devices",
+      "message": "this api is recommended to be used together with cv.put(Data.RAW_CONTACT_ID, someId) when your app is running one HTC desire S series. Check https://github.com/r3gis3r/CSipSimple/blob/340eea18b5143d1ff0c33c5fab4b5be272689203/src/com/csipsimple/utils/CallLogHelper.java for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content.res",
+      "iface": "Resources",
+      "method": "getDrawable",
+      "ret": {
+        "pkg": "android.graphics.drawable",
+        "iface": "Drawable"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 1,
+      "max_api_level": 21
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.security",
+      "iface": "KeyChain",
+      "method": "getPrivateKey",
+      "ret": {
+        "pkg": "java.security",
+        "iface": "PrivateKey"
+      },
+      "paramList": [
+        {
+          "pkg": "android.content",
+          "iface": "Context"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 17,
+      "important": "min_api_level",
+      "message": "this api is recommended to be used with a reference to its return value on device under Android 4.2 (i.e. JELLY_BEAN_MR1). If not, once a gc operation happened after its invocation, your app will crash. Check https://issuetracker.google.com/issues/36983679 and https://github.com/k9mail/k-9/commit/21237c37204541960bec596bed5fe105e010b157 for more help."
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "Activity",
+      "method": "onKeyDown",
+      "ret": {
+        "pkg": "",
+        "iface": "boolean"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        },
+        {
+          "pkg": "android.view",
+          "iface": "KeyEvent"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 16,
+      "bad_devices": [
+        "lg",
+        "LGE"
+      ],
+      "message": "this api is recommended to be used along with a device checking of LG, the menu button is not compatible with LG when `onKeyDown` is invoked. Check https://issuetracker.google.com/issues/37008260 and https://code.videolan.org/videolan/vlc-android/commit/c4ade9fe04eb244dde2eb4f4994ba3789f93f5f0 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.view",
+      "iface": "View",
+      "type": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "field": "SYSTEM_UI_FLAG_HIDE_NAVIGATION"
+    },
+    "context": {
+      "min_api_level": 14,
+      "bad_devices": [
+        "htc one",
+        "htc one v",
+        "htc one s",
+        "htc one x",
+        "htc one xl"
+      ],
+      "message": "this api is not recommended to be used in the HTC ONE series. Check https://code.videolan.org/videolan/vlc-android/commit/706530ea1bafae475c2ef3582546771aedd53723 for more help."
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.support.v7.app",
+      "iface": "AppCompatActivity",
+      "method": "setSupportActionBar",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "android.support.v7.widget",
+          "iface": "Toolbar"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 25,
+      "bad_devices": [
+        "samsung",
+        "galaxy"
+      ],
+      "message": "this api will crash the app in some Samsung devices. Check https://code.videolan.org/videolan/vlc-android/commit/0a35b4029f94fca5e190fa3dc104c5fa619ddd69 for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.graphics",
+      "iface": "BitmapFactory$Options",
+      "type": {
+        "pkg": "android.graphics",
+        "iface": "Bitmap"
+      },
+      "field": "inBitmap"
+    },
+    "context": {
+      "min_api_level": 11,
+      "message": "Check https://developer.android.com/reference/android/graphics/BitmapFactory.Options.html#inBitmap for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.webkit",
+      "iface": "WebSettings$LayoutAlgorithm",
+      "type": {
+        "pkg": "android.webkit",
+        "iface": "WebSettings$LayoutAlgorithm"
+      },
+      "field": "SINGLE_COLUMN"
+    },
+    "context": {
+      "min_api_level": 8,
+      "message": "this api will cause Android 1.0-2.1 to segfault, and deprecated according to android official docs. Check https://github.com/k9mail/k-9/commit/e0d6a55d06cd15ace22fa224fd1966cf5d983992 and https://developer.android.com/reference/android/webkit/WebSettings.LayoutAlgorithm.html for more help"
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider",
+      "iface": "Contacts$ContactMethods"
+    },
+    "context": {
+      "max_api_level": 4
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.os",
+      "iface": "Build$VERSION",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "SDK"
+    },
+    "context": {
+      "max_api_level": 3,
+      "message": "this api is deprecated in api level 4, use SDK_INT instead."
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider",
+      "iface": "ContactsContract"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.provider",
+      "iface": "Contacts"
+    },
+    "context": {
+      "max_api_level": 4
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.content",
+      "iface": "Intent",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "ACTION_SEND_MULTIPLE"
+    },
+    "context": {
+      "min_api_level": 4
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "TextView",
+      "method": "setTextIsSelectable",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 1
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.media",
+      "iface": "MediaRecorder$AudioEncoder",
+      "type": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "field": "AMR_WB"
+    },
+    "context": {
+      "min_api_level": 10
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.view",
+      "iface": "View",
+      "type": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "field": "SYSTEM_UI_FLAG_IMMERSIVE_STICKY"
+    },
+    "context": {
+      "min_api_level": 19
+    }
+  },
+  {
+    "api": {
+      "@type": "iface",
+      "pkg": "android.webkit",
+      "iface": "CookieSyncManager"
+    },
+    "context": {
+      "max_api_level": 20
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.appwidget",
+      "iface": "AppWidgetManager",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "OPTION_APPWIDGET_MIN_HEIGHT"
+    },
+    "context": {
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.widget",
+      "iface": "PopupWindow",
+      "method": "setAttachedInDecor",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "min_api_level": 22
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.content",
+      "iface": "Intent",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "EXTRA_REMOTE_INTENT_TOKEN"
+    },
+    "context": {
+      "min_api_level": 5
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.provider",
+      "iface": "Settings$System",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "WIFI_SLEEP_POLICY"
+    },
+    "context": {
+      "min_api_level": 3,
+      "max_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "field",
+      "pkg": "android.media",
+      "iface": "AudioManager",
+      "type": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "field": "PROPERTY_OUTPUT_SAMPLE_RATE"
+    },
+    "context": {
+      "min_api_level": 17
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.app",
+      "iface": "AlertDialog$Builder",
+      "method": "<init>",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "android.content",
+          "iface": "Context"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 11, https://developer.android.com/reference/android/app/AlertDialog.Builder.html#AlertDialog.Builder(android.content.Context,%20int)",
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.content",
+      "iface": "SharedPreferences$Editor",
+      "method": "apply",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": ""
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 9, https://developer.android.com/reference/android/content/SharedPreferences.Editor.html#apply()",
+      "min_api_level": 9
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.database.sqlite",
+      "iface": "SQLiteDatabase",
+      "method": "openDatabase",
+      "ret": {
+        "pkg": "android.database.sqlite",
+        "iface": "SQLiteDatabase"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "android.database.sqlite",
+          "iface": "SQLiteDatabase$CursorFactory"
+        },
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 11, https://developer.android.com/reference/android/database/sqlite/SQLiteDatabase.html#openDatabase(java.lang.String,%20android.database.sqlite.SQLiteDatabase.CursorFactory,%20int,%20android.database.DatabaseErrorHandler)",
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.graphics",
+      "iface": "Bitmap",
+      "method": "getByteCount",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": ""
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 12, https://developer.android.com/reference/android/graphics/Bitmap.html#getByteCount()",
+      "min_api_level": 12
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.net",
+      "iface": "SSLCertificateSocketFactory",
+      "method": "setHostname",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.net",
+          "iface": "Socket"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 17, https://developer.android.com/reference/android/net/SSLCertificateSocketFactory.html#setHostname(java.net.Socket,%20java.lang.String)",
+      "min_api_level": 17
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.text.format",
+      "iface": "Time",
+      "method": "compare",
+      "ret": {
+        "pkg": "",
+        "iface": "int"
+      },
+      "paramList": [
+        {
+          "pkg": "android.text.format",
+          "iface": "Time"
+        },
+        {
+          "pkg": "android.text.format",
+          "iface": "Time"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is deprecated in API 22, https://developer.android.com/reference/android/text/format/Time.html",
+      "max_api_level": 22
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.text.format",
+      "iface": "Time",
+      "method": "getCurrentTimezone",
+      "ret": {
+        "pkg": "java.lang",
+        "iface": "String"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": ""
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is deprecated in API 22, https://developer.android.com/reference/android/text/format/Time.html",
+      "max_api_level": 22
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.text.format",
+      "iface": "Time",
+      "method": "<init>",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": ""
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is deprecated in API 22, https://developer.android.com/reference/android/text/format/Time.html",
+      "max_api_level": 22
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.text.format",
+      "iface": "Time",
+      "method": "<init>",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "android.text.format",
+          "iface": "Time"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is deprecated in API 22, https://developer.android.com/reference/android/text/format/Time.html",
+      "max_api_level": 22
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.text.format",
+      "iface": "Time",
+      "method": "<init>",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is deprecated in API 22, https://developer.android.com/reference/android/text/format/Time.html",
+      "max_api_level": 22
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "KeyCharacterMap",
+      "method": "load",
+      "ret": {
+        "pkg": "android.view",
+        "iface": "KeyCharacterMap"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "int"
+        }
+      ]
+    },
+    "context": {
+      "message": "Collect this issue from https://code.google.com/archive/p/csipsimple/issues/863",
+      "bad_devices": [
+        "Moto",
+        "Xoom",
+        "Nexus7"
+      ]
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "View",
+      "method": "announceForAccessibility",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "CharSequence"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 16, https://developer.android.com/reference/android/view/View.html#announceForAccessibility(java.lang.CharSequence)",
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "View",
+      "method": "postOnAnimation",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "Runnable"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 16, https://developer.android.com/reference/android/view/View.html#postOnAnimation(java.lang.Runnable)",
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "View",
+      "method": "setAlpha",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "float"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 11, https://developer.android.com/reference/android/view/View.html#setAlpha(float)",
+      "min_api_level": 11
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.view",
+      "iface": "View",
+      "method": "setBackground",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "android.graphics.drawable",
+          "iface": "Drawable"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 16, https://developer.android.com/reference/android/view/View.html#setBackground(android.graphics.drawable.Drawable)",
+      "min_api_level": 16
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.webkit",
+      "iface": "WebView",
+      "method": "loadDataWithBaseURL",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        },
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        }
+      ]
+    },
+    "context": {
+      "message": "Collect this issue from https://github.com/ankidroid/Anki-Android/issues/1665",
+      "bad_devices": [
+        "Nook"
+      ]
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.webkit",
+      "iface": "WebView",
+      "method": "setScrollbarFadingEnabled",
+      "ret": {
+        "pkg": "",
+        "iface": "void"
+      },
+      "paramList": [
+        {
+          "pkg": "",
+          "iface": "boolean"
+        }
+      ]
+    },
+    "context": {
+      "message": "Collect this issue from https://github.com/ankidroid/Anki-Android/issues/2155",
+      "min_api_level": 7,
+      "bad_devices": [
+        "Nook"
+      ]
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "android.webkit",
+      "iface": "WebViewClient",
+      "method": "shouldInterceptRequest",
+      "ret": {
+        "pkg": "android.webkit",
+        "iface": "WebResourceResponse"
+      },
+      "paramList": [
+        {
+          "pkg": "android.webkit",
+          "iface": "WebView"
+        },
+        {
+          "pkg": "android.webkit",
+          "iface": "WebResourceRequest"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 21, https://developer.android.com/reference/android/webkit/WebViewClient.html#shouldInterceptRequest(android.webkit.WebView,%20android.webkit.WebResourceRequest)",
+      "min_api_level": 21
+    }
+  },
+  {
+    "api": {
+      "@type": "method",
+      "pkg": "java.util",
+      "iface": "Locale",
+      "method": "forLanguageTag",
+      "ret": {
+        "pkg": "java.util",
+        "iface": "Locale"
+      },
+      "paramList": [
+        {
+          "pkg": "java.lang",
+          "iface": "String"
+        }
+      ]
+    },
+    "context": {
+      "message": "The API is introduced in API 21, https://developer.android.com/reference/java/util/Locale.html#forLanguageTag(java.lang.String)",
+      "min_api_level": 21
+    }
+  }
+]
