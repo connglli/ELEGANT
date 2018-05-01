@@ -406,18 +406,20 @@ public class Soots {
 
     // findBackwardDataDependencies finds the data-flow dependencies of u located at m in the call graph
     private static Set<Unit> findBackwardDataDependencies(Unit u, SootMethod m, CallGraph cg, AbstractD3Algo d3Algo) {
-        return findBackwardDataDependenciesExcept(u, m, cg, new HashSet<>(), d3Algo);
+        Set<Value>      exValues        = new HashSet<>();
+        return findBackwardDataDependenciesExcept(null, u, m, cg, exValues, d3Algo);
     }
 
     // findBackwardDataDependenciesExcept finds the data-flow dependencies of u located at m in the call graph,
     // but exclude the exValues, i.e. do not trace them recursively
     private static Set<Unit>  findBackwardDataDependenciesExcept(
+            Set<Unit> prevRet, // prevRet saves the ret value previously, to fix the bug of cross-level-recursion
             Unit u,
             SootMethod m,
             CallGraph cg,
             Set<Value> exValues,
             AbstractD3Algo d3Algo) {
-        Set<Unit> ret = new HashSet<>();
+        Set<Unit> ret = null == prevRet ? new HashSet<>() : prevRet;
         SootClass c = null == m ? null : m.getDeclaringClass();
 
         // skip 3rd-party
@@ -425,9 +427,10 @@ public class Soots {
             return new HashSet<>();
         }
 
-        // trick, we add all units in <clinit>(the static code block) and <init> into slicing
+        // trick, we add the unit itself and all units in <clinit>(the static code block) and <init> into slicing
         // because these two blocks are sometimes the dependencies of other units
         try {
+            ret.add(u);
             for (SootMethod mm : c.getMethods()) {
                 if (CLASS_STATIC_CODE_BLOCK_METHOD_NAME.equals(mm.getName()) ||
                         CLASS_CODE_BLOCK_METHOD_NAME.equals(mm.getName())) {
@@ -443,11 +446,19 @@ public class Soots {
             if (!(v instanceof Local) || exValues.contains(v)) { continue; }
 
             // find those redefined statements
-            Set<Unit> redefeindStmts = findPreviousDefinitions(v, u, m);
-            // add theses redefined statements
-            ret.addAll(redefeindStmts);
+            Set<Unit> redefinedStmts = findPreviousDefinitions(v, u, m);
+            Set<Unit> alreadyInRet   = new HashSet<>();
+            // remove those already in ret
+            for (Unit uu : redefinedStmts) {
+                if (ret.contains(uu)) {
+                    alreadyInRet.add(uu);
+                }
+            }
+            redefinedStmts.removeAll(alreadyInRet);
+            // add the rest redefined statements
+            ret.addAll(redefinedStmts);
             // track these redefined statements
-            for (Unit uu : redefeindStmts) {
+            for (Unit uu : redefinedStmts) {
                 // when the redefined statement is redefined by a method arg, we continually track the caller
                 if (uu instanceof IdentityStmt && ((IdentityStmt) uu).getRightOp() instanceof ParameterRef) {
                     int argIdx = ((ParameterRef) ((IdentityStmt) uu).getRightOp()).getIndex();
@@ -460,14 +471,18 @@ public class Soots {
                         // not recursions
                         for (Unit callSite : entry.getValue().getCallSites()) {
                             assert callSite instanceof Stmt && ((Stmt) callSite).containsInvokeExpr();
+                            // skip already sliced
+                            if (ret.contains(callSite)) { continue; }
+                            // u is control-depend-on callSite
+                            else { ret.add(callSite); }
                             Value      trackedArg    = ((Stmt) callSite).getInvokeExpr().getArg(argIdx);
                             Set<Value> untrackedArgs = new HashSet<>(((Stmt) callSite).getInvokeExpr().getArgs());
                             untrackedArgs.remove(trackedArg);
-                            ret.addAll(findBackwardDataDependenciesExcept(callSite, entry.getKey(), cg, untrackedArgs, d3Algo));
+                            ret.addAll(findBackwardDataDependenciesExcept(ret, callSite, entry.getKey(), cg, untrackedArgs, d3Algo));
                         }
                     }
                 } else {
-                    ret.addAll(findBackwardDataDependenciesExcept(uu, m, cg, new HashSet<>(), d3Algo));
+                    ret.addAll(findBackwardDataDependenciesExcept(ret, uu, m, cg, new HashSet<>(), d3Algo));
                 }
             }
         }
