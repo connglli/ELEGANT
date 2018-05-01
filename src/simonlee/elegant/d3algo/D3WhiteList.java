@@ -27,6 +27,7 @@ public class D3WhiteList extends D3AbstractWhiteList {
         "com.nispok.snackbar",               // snackbar
         "com.nineoldandroids",               // android animation library for os prior to Honeycomb
         "com.nostra13.universalimageloader", // image loader
+        "de.cketti.library.changelog",       // change log library
         "rx",                                // reactivex java
         "org.omg",                           // extends to java
         "org.w3c",                           // extends to java
