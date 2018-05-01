@@ -14,7 +14,7 @@ public class Reporter {
 
     // templates
     private static final String REPORT_HEAD_TEMPLATE =
-            "%s %s, a tool usEd to LocatE fraGmentAtion iNduced compaTibility issues.\n" +
+            "%s %s, %s\n" +
             "Copyright (C) 2017-2018, by %s\n" +
             "All rights reserved\n";
     private static final String REPORT_SUMMARY_TEMPLATE =
@@ -159,7 +159,7 @@ public class Reporter {
      * @param ps a print stream
      */
     public void report(PrintStream ps) {
-        ps.printf(REPORT_HEAD_TEMPLATE, CLI.APP.NAME, CLI.APP.VERSION, CLI.AUTHOR.NAME);
+        ps.printf(REPORT_HEAD_TEMPLATE, CLI.APP.NAME, CLI.APP.VERSION, CLI.APP.DESCRIPTION, CLI.AUTHOR.NAME);
         ps.println();
 
         ps.printf(REPORT_SUMMARY_TEMPLATE, acpairCount, callSiteCount, callChainCount);

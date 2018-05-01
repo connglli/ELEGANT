@@ -16,11 +16,12 @@ public class CLI {
 
     // ELEGANT information
     public static class APP {
-        public static final String NAME    = "ELEGANT CLI Tool";
-        public static final String MAJOR_V = "1";
-        public static final String MINOR_V = "0";
-        public static final String PATCH_V = "0";
-        public static final String VERSION = MAJOR_V + "." + MINOR_V + "." + PATCH_V;
+        public static final String NAME        = "ELEGANT CLI Tool";
+        public static final String DESCRIPTION = "a tool usEd to LocatE fraGmentAtion iNduced compaTibility issues";
+        public static final String MAJOR_V     = "1";
+        public static final String MINOR_V     = "0";
+        public static final String PATCH_V     = "0";
+        public static final String VERSION     = MAJOR_V + "." + MINOR_V + "." + PATCH_V;
     }
 
     // author information
@@ -54,13 +55,17 @@ public class CLI {
                                                             + D3AlgoFactory.D3_WHITELIST + ", "
                                                             + D3AlgoFactory.D3_LIBSCOUT + ".";
 
-        public static final String OPT_VERBOSE = "v";
+        public static final String OPT_VERBOSE = "V";
         public static final String OPTL_VERBOSE = "verbose";
         public static final String OPT_VERBOSE_DESCRIPTION = "print verbose information";
 
         public static final String OPT_HELP = "h";
         public static final String OPTL_HELP = "help";
         public static final String OPT_HELP_DESCRIPTION = "show help";
+
+        public static final String OPT_VERSION = "v";
+        public static final String OPTL_VERSION = "version";
+        public static final String OPT_VERSION_DESCRIPTION = "show version";
     }
 
     // GlobalOptions stores all parsed options
@@ -77,7 +82,7 @@ public class CLI {
         private String d3Algo = null != ELEGANT.DEFAULT_OPTS.D3_ALGO
                                 ? ELEGANT.DEFAULT_OPTS.D3_ALGO
                                 // defaults to none
-                                : D3AlgoFactory.D3_NONE;
+                                : D3AlgoFactory.D3_WHITELIST;
         private boolean verbose = false; // defaults to no verbose
         private PrintStream output = System.out; // defaults to stdout
 
@@ -131,7 +136,7 @@ public class CLI {
     }
 
     // the usage header
-    public static final String USAGE_HEADER = "java -jar eleant-cli.jar [options ...] <apk>";
+    public static final String USAGE_HEADER = "java -jar elegant-cli.jar [option ...] <apk>";
 
     // unparsed options
     private String[] unparsedOpts;
@@ -184,6 +189,11 @@ public class CLI {
 
             if (cli.hasOption(CLI_OPTIONS.OPT_HELP)) {
                 usage();
+                stop(0);
+            }
+
+            if (cli.hasOption(CLI_OPTIONS.OPT_VERSION)) {
+                version();
                 stop(0);
             }
 
@@ -286,12 +296,23 @@ public class CLI {
                 .isRequired(false)
                 .create(CLI_OPTIONS.OPT_HELP));
 
+        fullOpts.addOption(OptionBuilder
+                .withLongOpt(CLI_OPTIONS.OPTL_VERSION)
+                .withDescription(CLI_OPTIONS.OPT_VERSION_DESCRIPTION)
+                .isRequired(false)
+                .create(CLI_OPTIONS.OPT_VERSION));
+
         return fullOpts;
+    }
+
+    private void version() {
+        System.out.printf("%s, %s\n", APP.NAME, APP.DESCRIPTION);
+        System.out.printf("version %s\n", APP.VERSION);
     }
 
     private void usage() {
         HelpFormatter hf = new HelpFormatter();
-        hf.printHelp(USAGE_HEADER, "options:", fullOpts, "");
+        hf.printHelp(USAGE_HEADER, "option:", fullOpts, "");
     }
 
 }

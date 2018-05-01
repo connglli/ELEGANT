@@ -30,7 +30,7 @@ public class ELEGANT {
         // required
         public static final String PLATFORMS_PATH = null;
         // optional
-        public static final String D3_ALGO = D3AlgoFactory.D3_NONE;
+        public static final String D3_ALGO = D3AlgoFactory.D3_WHITELIST;
     }
 
     // Builder helps to create an ELEGANT instance more easily
