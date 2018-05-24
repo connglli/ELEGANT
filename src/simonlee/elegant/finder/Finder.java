@@ -5,8 +5,7 @@ import simonlee.elegant.ELEGANT;
 import simonlee.elegant.finder.plainfinder.PFinder;
 import simonlee.elegant.finder.reflectionfinder.RFinder;
 import simonlee.elegant.models.ApiContext;
-import soot.*;
-import soot.options.Options;
+import soot.PackManager;
 
 import java.util.*;
 
@@ -25,21 +24,12 @@ public class Finder {
     }
 
     private void init() {
-        soot.G.reset();
-
-        // parse options
-        Options.v().parse(this.elegant.getOptions());
-
-        // load classes
-        Scene.v().loadNecessaryClasses();
-
-        // fake main created by flowdroid
-        SootMethod entryPoint = this.elegant.getApp().getEntryPointCreator().createDummyMain();
-        Options.v().set_main_class(entryPoint.getSignature());
-        Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
-
-        // run it
-        PackManager.v().runPacks();
+        try {
+            // run info flow analysis
+            this.elegant.getApp().runInfoflow();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // uncomment to generate a call graph viewer
         // new CallGraphViewer(Scene.v().getCallGraph(), entryPoint).export("cg", "/Users/apple/Desktop");

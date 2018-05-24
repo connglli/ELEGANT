@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+    <!-- disable debug output of soot, soot-infoflow, soot-infoflow-android -->
+    <logger name="soot" level="error" />
+    <logger name="soot.jimple.infoflow.android" level="error" />
+    <logger name="soot.jimple.infoflow" level="error" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d %green([%thread]) %highlight(%-5level) %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

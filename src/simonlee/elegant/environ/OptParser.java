@@ -1,12 +1,13 @@
 package simonlee.elegant.environ;
 
 import com.alibaba.fastjson.JSON;
-import simonlee.elegant.Resources;
+import simonlee.elegant.Dbs;
 import simonlee.elegant.d3algo.D3AlgoFactory;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.utils.Bundle;
 import simonlee.elegant.utils.PubSub;
-import soot.G;
+import soot.jimple.infoflow.InfoflowConfiguration;
+import soot.jimple.infoflow.android.InfoflowAndroidConfiguration;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
 
@@ -134,8 +135,8 @@ public class OptParser implements PubSub {
         OptBundle<String> bundle = new OptBundle<>(OPT_APK_PATH, apkPath);
         String androidPlatformsPath = (String) getOpt(OPT_PLATFORMS_PATH);
         // TODO - Yes, hard code here, don't touch it, should be a parameter passed to ELEGANT
-        String sourcesAndSinksFilePath = Resources.SOURCES_AND_SINKS_FILE;
-        String androidCallBacksFilePath = Resources.ANDROID_CALLBACKS_FILE;
+        String sourcesAndSinksFilePath = Dbs.SOURCES_AND_SINKS_FILE;
+        String androidCallBacksFilePath = Dbs.ANDROID_CALLBACKS_FILE;
 
         try {
             if (!apkPath.endsWith(".apk")) {
@@ -147,15 +148,15 @@ public class OptParser implements PubSub {
             // setup application
             SetupApplication app = new SetupApplication(androidPlatformsPath, apkPath);
 
-            // set andoid callbacks, and use sources and sinks to calculate entry point
+            // see more configurations in ``SetupApplication.initializeSoot()''
+            // set andoid callbacks, and use
             app.setCallbackFile(androidCallBacksFilePath);
-            try {
-                app.calculateSourcesSinksEntrypoints(sourcesAndSinksFilePath);
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage());
-            }
-
-            G.reset();
+            // set new instance mode
+            app.getConfig().setSootIntegrationMode(InfoflowAndroidConfiguration.SootIntegrationMode.CreateNewInstace);
+            // set sources and sinks files, which is used to calculate the call graph
+            app.getConfig().getAnalysisFileConfig().setSourceSinkFile(sourcesAndSinksFilePath);
+            // set call graph construction algorithms
+            app.getConfig().setCallgraphAlgorithm(InfoflowConfiguration.CallgraphAlgorithm.SPARK);
 
             bundle.putExtra(OPT_BDL_APK_PATH_APP, app);
             bundle.putExtra(OPT_BDL_APK_PATH_MANIFEST, manifest);

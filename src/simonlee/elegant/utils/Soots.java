@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simonlee.elegant.d3algo.AbstractD3Algo;
 import simonlee.elegant.finder.CallSites;
-import com.sun.istack.internal.NotNull;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
@@ -38,7 +37,8 @@ public class Soots {
      * @param m the method where the variable lives at
      * @return  the latest definition unit of v
      */
-    public static Unit findLatestDefinition(@NotNull Value v, @NotNull Unit u, @NotNull SootMethod m) {
+    public static Unit findLatestDefinition(Value v, Unit u, SootMethod m) {
+        if (null == v || null == u || null == m) { return null; }
         if (!(u instanceof Stmt)) { return null; }
 
         Unit       def   = null;
@@ -72,7 +72,8 @@ public class Soots {
      * @param m the method where the variable lives at
      * @return  the previous definitions unit of v
      */
-    public static Set<Unit> findPreviousDefinitions(@NotNull Value v, @NotNull Unit u, @NotNull SootMethod m) {
+    public static Set<Unit> findPreviousDefinitions(Value v, Unit u, SootMethod m) {
+        if (null == v || null == u || null == m) { return null; }
         if (!(u instanceof Stmt)) { return new HashSet<>(); }
 
         try {

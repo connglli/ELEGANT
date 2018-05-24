@@ -29,27 +29,6 @@ public class Environ implements PubSub.Handle {
     // elegant is the container that Env is in
     private ELEGANT elegant;
 
-    // default soot settings
-    private String[] options = {
-            // general options
-            "-whole-program",
-
-            // input options
-            "-process-dir", "-",
-            "-src-prec", "apk",
-            "-android-jars", "-",
-            "-prepend-classpath",
-            "-allow-phantom-refs",
-            "-no-bodies-for-excluded",
-            "-keep-line-number",
-
-            // output options
-            "-output-format", "none",
-
-            // process options
-            "-phase-option", "cg.spark", "enabled:true"
-    };
-
     // soot-analysed results
     private Set<ApiContext>  models;
     private SetupApplication app;
@@ -62,10 +41,6 @@ public class Environ implements PubSub.Handle {
 
         // do some registration work, Env need to get arguments throwed by configurations
         this.elegant.watchOpts(this);
-    }
-
-    public String[] getOptions() {
-        return options;
     }
 
     public SetupApplication getApp() {
@@ -111,7 +86,6 @@ public class Environ implements PubSub.Handle {
 
         switch (key) {
             case OptParser.OPT_APK_PATH:
-                this.options[2] = (String) bundle.getV(); // TODO - 2 should not be hard coded
                 this.app = (SetupApplication) bundle.getExtra(OptParser.OPT_BDL_APK_PATH_APP);
                 this.manifest = (ProcessManifest) bundle.getExtra(OptParser.OPT_BDL_APK_PATH_MANIFEST);
                 break;
@@ -119,7 +93,6 @@ public class Environ implements PubSub.Handle {
                 this.models = (Set) bundle.getExtra(OptParser.OPT_BDL_MODELS_MODEL);
                 break;
             case OptParser.OPT_PLATFORMS_PATH:
-                this.options[6] = (String) bundle.getV(); // TODO - 6 should not be hard coded
                 break;
             case OptParser.OPT_D3_ALGO:
                 this.d3Algo = (AbstractD3Algo) bundle.getExtra(OptParser.OPT_BDL_D3_ALGO_ALGO);

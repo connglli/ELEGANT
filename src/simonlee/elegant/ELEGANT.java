@@ -77,8 +77,8 @@ public class ELEGANT {
     }
 
     // soot-unaware container-unaware components
-    private OptParser      optParser;
-    private Tracker        tracker;
+    private OptParser optParser;
+    private Tracker   tracker;
 
     // soot-aware container-aware components
     private Finder  finder;
@@ -88,8 +88,8 @@ public class ELEGANT {
         optParser = new OptParser();
         tracker   = new Tracker();
 
-        environ  = new Environ(this);
-        finder   = new Finder(this);
+        environ = new Environ(this);
+        finder  = new Finder(this);
     }
 
     public void run() {
@@ -98,10 +98,6 @@ public class ELEGANT {
     }
 
     // delegate Environment
-
-    public String[] getOptions() {
-        return environ.getOptions();
-    }
 
     public SetupApplication getApp() {
         return environ.getApp();

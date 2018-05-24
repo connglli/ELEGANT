@@ -1,8 +1,10 @@
 package simonlee.elegantcli;
 
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import simonlee.elegant.ELEGANT;
-import simonlee.elegant.Resources;
+import simonlee.elegant.Dbs;
 import simonlee.elegant.d3algo.D3AlgoFactory;
 import simonlee.elegantcli.reporter.PIssueHandle;
 import simonlee.elegantcli.reporter.RIssueHandle;
@@ -13,6 +15,8 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
 public class CLI {
+
+    private static Logger logger = LoggerFactory.getLogger(CLI.class);
 
     // ELEGANT information
     public static class APP {
@@ -74,7 +78,7 @@ public class CLI {
         private String models = null != ELEGANT.DEFAULT_OPTS.MODELS_PATH
                                 ? ELEGANT.DEFAULT_OPTS.MODELS_PATH
                                 // defaults to the default models.json
-                                : Resources.MODELS_FILE;
+                                : Dbs.MODELS_FILE;
         private String platforms =  null != ELEGANT.DEFAULT_OPTS.PLATFORMS_PATH
                                     ? ELEGANT.DEFAULT_OPTS.PLATFORMS_PATH
                                     // defaults to $ANDROID_HOME/platforms

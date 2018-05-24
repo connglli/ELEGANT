@@ -3,7 +3,7 @@ package simonlee.elegant.d3algo;
 import de.infsec.tpl.LibraryIdentifier;
 import de.infsec.tpl.profile.LibProfile;
 import de.infsec.tpl.utils.Utils;
-import simonlee.elegant.Resources;
+import simonlee.elegant.Dbs;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ public class D3LibScout extends D3AbstractWhiteList {
     private static boolean libProfilesAreLoaded = false;
     // TODO - Yes, hard code here, don't touch it, should be a parameter passed to ELEGANT
     // libProfiles directory path
-    private static String libProfilesDirPath = Resources.LIB_PROFILES_DIR;
+    private static String libProfilesDirPath = Dbs.LIB_PROFILES_DIR;
     // library libProfiles
     private static List<LibProfile> libProfiles = null;
 
