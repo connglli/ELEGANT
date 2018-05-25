@@ -38,7 +38,9 @@
               install these libraries into the central repo
               they are built from a modified version of their
               developed or released branch, thus,
-              DON'T REPLACE THEM WITH ANY OTHERS
+              DON'T REPLACE THEM WITH ANY OTHERS,
+              these goals are bound to validate phase, so that
+              these can be installed ahead of time
             -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -57,7 +59,7 @@
                             <artifactId>dalvik</artifactId>
                             <version>1.0</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/dependencies/wala/wala.jar</file>
+                            <file>deps/wala/wala.jar</file>
                             <generatePom>true</generatePom>
                         </configuration>
                     </execution>
@@ -73,7 +75,7 @@
                             <artifactId>android</artifactId>
                             <version>1.0</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/dependencies/android/android-23.jar</file>
+                            <file>deps/android/android-23.jar</file>
                             <generatePom>true</generatePom>
                         </configuration>
                     </execution>
@@ -89,9 +91,9 @@
                             <artifactId>soot-infoflow</artifactId>
                             <version>2.6-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/dependencies/soot-infoflow/soot-infoflow.jar</file>
+                            <file>deps/soot-infoflow/soot-infoflow.jar</file>
                             <generatePom>false</generatePom>
-                            <pomFile>${basedir}/dependencies/soot-infoflow/pom.xml</pomFile>
+                            <pomFile>deps/soot-infoflow/pom.xml</pomFile>
                         </configuration>
                     </execution>
                     <execution>
@@ -106,36 +108,74 @@
                             <artifactId>soot-infoflow-android</artifactId>
                             <version>2.6-SNAPSHOT</version>
                             <packaging>jar</packaging>
-                            <file>${basedir}/dependencies/soot-infoflow-android/soot-infoflow-android.jar</file>
+                            <file>deps/soot-infoflow-android/soot-infoflow-android.jar</file>
                             <generatePom>false</generatePom>
-                            <pomFile>${basedir}/dependencies/soot-infoflow-android/pom.xml</pomFile>
+                            <pomFile>deps/soot-infoflow-android/pom.xml</pomFile>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <!-- build with dependencies: mvn clean compile assembly:single -->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-assembly-plugin</artifactId>-->
+                <!--<configuration>-->
+                    <!--<finalName>elegant-cli</finalName>-->
+                    <!--<descriptorRefs>-->
+                        <!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
+                    <!--</descriptorRefs>-->
+                    <!--<archive>-->
+                        <!--<manifest>-->
+                            <!--<addClasspath>true</addClasspath>-->
+                            <!--<mainClass>simonlee.elegantcli.CLI</mainClass>-->
+                        <!--</manifest>-->
+                    <!--</archive>-->
+                <!--</configuration>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>simple-command</id>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>attached</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+            <!--
+                build with dependencies: mvn package
+                NOTE: maven-shade-plugin does not support a command line mode, it
+                      must be bound to phase package
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <finalName>elegant-cli</finalName>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>simonlee.elegantcli.CLI</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
                 <executions>
                     <execution>
-                        <id>simple-command</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>attached</goal>
+                            <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <filters>
+                                <filter>
+                                    <artifact>android:android</artifact>
+                                    <includes>
+                                        <include>android/content/res/*.class</include>
+                                        <include>org/xmlpull/v1/*.class</include>
+                                        <include>android/util/AttributeSet.class</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Main-Class>simonlee.elegantcli.CLI</Main-Class>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

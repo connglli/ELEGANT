@@ -56,3 +56,4 @@ dist
 assets
 test
 sootOutput
+dependency-reduced-pom.xml
