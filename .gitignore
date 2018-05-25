@@ -47,7 +47,6 @@ fabric.properties
 
 # Compiled class file
 dbs
-out
 target
 dist
 *.class
@@ -57,3 +56,4 @@ assets
 test
 sootOutput
 dependency-reduced-pom.xml
+res-idea-only

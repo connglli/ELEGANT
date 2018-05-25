@@ -4,7 +4,6 @@ import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simonlee.elegant.ELEGANT;
-import simonlee.elegant.Dbs;
 import simonlee.elegant.d3algo.D3AlgoFactory;
 import simonlee.elegantcli.reporter.PIssueHandle;
 import simonlee.elegantcli.reporter.RIssueHandle;
