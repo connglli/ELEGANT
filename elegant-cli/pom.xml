@@ -21,7 +21,7 @@
         <!-- add resources -->
         <resources>
             <resource>
-                <directory>.</directory>
+                <directory>res</directory>
                 <includes>
                     <include>logback.xml</include>
                 </includes>

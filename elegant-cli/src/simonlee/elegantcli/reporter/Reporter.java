@@ -5,6 +5,7 @@ import simonlee.elegantcli.CLI;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.models.context.Context;
 import simonlee.elegant.utils.CallPoint;
+import soot.jimple.infoflow.android.manifest.ProcessManifest;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -17,6 +18,17 @@ public class Reporter {
             "%s %s, %s\n" +
             "Copyright (C) 2017-2018, by %s\n" +
             "All rights reserved\n";
+    private static final String REPROT_APP_TEMPLATE =
+            "APPLICATION:\n" +
+            "  name:       %s\n" +
+            "  version:    %s\n" +
+            "  package:    %s\n" +
+            "  min sdk:    %d\n" +
+            "  target sdk: %d\n" +
+            "  activities: %d\n" +
+            "  services:   %d\n" +
+            "  receivers:  %d\n" +
+            "  providers:  %d\n";
     private static final String REPORT_SUMMARY_TEMPLATE =
             "SUMMARY:\n" +
             "  total unrecommended manners: %d apis, %d/%d usages (call-sites/call-chains)\n" +
@@ -162,6 +174,9 @@ public class Reporter {
         ps.printf(REPORT_HEAD_TEMPLATE, CLI.APP.NAME, CLI.APP.VERSION, CLI.APP.DESCRIPTION, CLI.AUTHOR.NAME);
         ps.println();
 
+        reportAppInfo(ps);
+        ps.println();
+
         ps.printf(REPORT_SUMMARY_TEMPLATE, acpairCount, callSiteCount, callChainCount);
         ps.println();
 
@@ -178,6 +193,22 @@ public class Reporter {
             ps.printf(REPORT_FOOT_VERBOSE_HELP_TEMPLATE);
         }
         ps.printf(REPORT_FOOT_TEMPLATE, CLI.AUTHOR.EMAIL);
+    }
+
+    private void reportAppInfo(PrintStream ps) {
+        ProcessManifest m = this.elegant.getManifest();
+        String[] fullNameTokens = m.getApplicationName().split("\\.");
+
+        ps.printf(REPROT_APP_TEMPLATE,
+                fullNameTokens[fullNameTokens.length - 1],
+                m.getVersionName(),
+                m.getPackageName(),
+                m.getMinSdkVersion(),
+                m.targetSdkVersion(),
+                m.getActivities().size(),
+                m.getServices().size(),
+                m.getReceivers().size(),
+                m.getProviders().size());
     }
 
     private void reportApiContext(PrintStream ps, ApiContext acpair) {
