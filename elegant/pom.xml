@@ -1,0 +1,279 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>simonlee.elegant</groupId>
+    <artifactId>ELEGANT</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>ELEGANT</name>
+
+    <properties>
+        <!-- global properties used by maven-compiler-plugin -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <build>
+        <finalName>ELEGANT</finalName>
+        <sourceDirectory>src</sourceDirectory>
+        <plugins>
+            <!-- set the compiler to java8 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+            </plugin>
+            <!--
+              install these libraries into the central repo
+              they are built from a modified version of their
+              developed or released branch, thus,
+              DON'T REPLACE THEM WITH ANY OTHERS,
+              these goals are bound to validate phase, so that
+              these can be installed ahead of time
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.1</version>
+                <executions>
+                    <execution>
+                        <id>install-wala</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <!-- dependency: wala -->
+                        <configuration>
+                            <groupId>com.ibm.wala</groupId>
+                            <artifactId>dalvik</artifactId>
+                            <version>1.0</version>
+                            <packaging>jar</packaging>
+                            <file>deps/wala/wala.jar</file>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-android</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <!-- dependency: android -->
+                        <configuration>
+                            <groupId>android</groupId>
+                            <artifactId>android</artifactId>
+                            <version>1.0</version>
+                            <packaging>jar</packaging>
+                            <file>deps/android/android-23.jar</file>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-soot-infoflow</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                         <!-- dependency: soot-infoflow -->
+                        <configuration>
+                            <groupId>de.tud.sse</groupId>
+                            <artifactId>soot-infoflow</artifactId>
+                            <version>2.6-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>deps/soot-infoflow/soot-infoflow.jar</file>
+                            <generatePom>false</generatePom>
+                            <pomFile>deps/soot-infoflow/pom.xml</pomFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-soot-infoflow-android</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <!-- dependency: soot-infoflow-android -->
+                        <configuration>
+                            <groupId>de.tud.sse</groupId>
+                            <artifactId>soot-infoflow-android</artifactId>
+                            <version>2.6-SNAPSHOT</version>
+                            <packaging>jar</packaging>
+                            <file>deps/soot-infoflow-android/soot-infoflow-android.jar</file>
+                            <generatePom>false</generatePom>
+                            <pomFile>deps/soot-infoflow-android/pom.xml</pomFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- build with dependencies: mvn clean compile assembly:single -->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-assembly-plugin</artifactId>-->
+                <!--<configuration>-->
+                    <!--<finalName>elegant-cli</finalName>-->
+                    <!--<descriptorRefs>-->
+                        <!--<descriptorRef>jar-with-dependencies</descriptorRef>-->
+                    <!--</descriptorRefs>-->
+                    <!--<archive>-->
+                        <!--<manifest>-->
+                            <!--<addClasspath>true</addClasspath>-->
+                            <!--<mainClass>simonlee.elegantcli.CLI</mainClass>-->
+                        <!--</manifest>-->
+                    <!--</archive>-->
+                <!--</configuration>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>simple-command</id>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>attached</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+            <!--
+                build with dependencies: mvn package
+                NOTE: maven-shade-plugin does not support a command line mode, it
+                      must be bound to phase package
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <filters>
+                                <filter>
+                                    <artifact>android:android</artifact>
+                                    <includes>
+                                        <include>android/content/res/*.class</include>
+                                        <include>org/xmlpull/v1/*.class</include>
+                                        <include>android/util/AttributeSet.class</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- check version conflicts: mvn enforcer:enforce -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <configuration>
+                    <rules><dependencyConvergence/></rules>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- some conflict version that will cause crash -->
+
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
+
+        <!-- soot & soot-infoflow -->
+
+        <!-- local repository: soot-infoflow-android -->
+        <dependency>
+            <groupId>de.tud.sse</groupId>
+            <artifactId>soot-infoflow-android</artifactId>
+            <version>2.6-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- LibScout -->
+
+        <!-- local repository: wala -->
+        <dependency>
+            <groupId>com.ibm.wala</groupId>
+            <artifactId>dalvik</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!-- local repository: android -->
+        <dependency>
+            <groupId>android</groupId>
+            <artifactId>android</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>de.tud.sse</groupId>
+            <artifactId>soot-infoflow</artifactId>
+            <version>2.6-SNAPSHOT</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.zafarkhaja/java-semver -->
+        <dependency>
+            <groupId>com.github.zafarkhaja</groupId>
+            <artifactId>java-semver</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+
+        <!-- ELEGANT -->
+
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.37</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/it.uniroma1.dis.wsngroup.gexf4j/gexf4j -->
+        <dependency>
+            <groupId>it.uniroma1.dis.wsngroup.gexf4j</groupId>
+            <artifactId>gexf4j</artifactId>
+            <version>0.4.4-BETA</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>soot-snapshot</id>
+            <name>Soot snapshot server</name>
+            <url>https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/</url>
+        </repository>
+        <repository>
+            <id>soot-release</id>
+            <name>Soot release server</name>
+            <url>https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/</url>
+        </repository>
+    </repositories>
+</project>
