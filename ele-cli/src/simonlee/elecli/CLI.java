@@ -1,13 +1,13 @@
-package simonlee.elegantcli;
+package simonlee.elecli;
 
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import simonlee.elegant.ELEGANT;
 import simonlee.elegant.d3algo.D3AlgoFactory;
-import simonlee.elegantcli.reporter.PIssueHandle;
-import simonlee.elegantcli.reporter.RIssueHandle;
-import simonlee.elegantcli.reporter.Reporter;
+import simonlee.elecli.reporter.PIssueHandle;
+import simonlee.elecli.reporter.RIssueHandle;
+import simonlee.elecli.reporter.Reporter;
 
 import java.io.File;
 import java.io.FileNotFoundException;

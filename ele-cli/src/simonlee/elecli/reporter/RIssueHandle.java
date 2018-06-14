@@ -1,4 +1,4 @@
-package simonlee.elegantcli.reporter;
+package simonlee.elecli.reporter;
 
 import simonlee.elegant.finder.Issue;
 import simonlee.elegant.finder.reflectionfinder.RIssue;

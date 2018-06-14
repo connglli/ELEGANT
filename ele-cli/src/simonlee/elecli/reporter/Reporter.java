@@ -1,12 +1,13 @@
-package simonlee.elegantcli.reporter;
+package simonlee.elecli.reporter;
 
 import simonlee.elegant.ELEGANT;
-import simonlee.elegantcli.CLI;
+import simonlee.elecli.CLI;
 import simonlee.elegant.models.ApiContext;
 import simonlee.elegant.models.context.Context;
 import simonlee.elegant.utils.CallPoint;
 import soot.jimple.infoflow.android.manifest.ProcessManifest;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
 
@@ -20,15 +21,16 @@ public class Reporter {
             "All rights reserved\n";
     private static final String REPROT_APP_TEMPLATE =
             "APPLICATION:\n" +
+            "  file:       %s\n" +
             "  name:       %s\n" +
-            "  version:    %s\n" +
             "  package:    %s\n" +
-            "  min sdk:    %d\n" +
-            "  target sdk: %d\n" +
-            "  activities: %d\n" +
-            "  services:   %d\n" +
-            "  receivers:  %d\n" +
-            "  providers:  %d\n";
+            "  version:    %s\n" +
+            "  min sdk:    %s\n" +
+            "  target sdk: %s\n" +
+            "  activities: %s\n" +
+            "  services:   %s\n" +
+            "  receivers:  %s\n" +
+            "  providers:  %s\n";
     private static final String REPORT_SUMMARY_TEMPLATE =
             "SUMMARY:\n" +
             "  total unrecommended manners: %d apis, %d/%d usages (call-sites/call-chains)\n" +
@@ -171,13 +173,15 @@ public class Reporter {
      * @param ps a print stream
      */
     public void report(PrintStream ps) {
-        ps.printf(REPORT_HEAD_TEMPLATE, CLI.APP.NAME, CLI.APP.VERSION, CLI.APP.DESCRIPTION, CLI.AUTHOR.NAME);
+        ps.printf(REPORT_HEAD_TEMPLATE,
+                CLI.APP.NAME, CLI.APP.VERSION, CLI.APP.DESCRIPTION, CLI.AUTHOR.NAME);
         ps.println();
 
         reportAppInfo(ps);
         ps.println();
 
-        ps.printf(REPORT_SUMMARY_TEMPLATE, acpairCount, callSiteCount, callChainCount);
+        ps.printf(REPORT_SUMMARY_TEMPLATE,
+                acpairCount, callSiteCount, callChainCount);
         ps.println();
 
         for (Map.Entry<ApiContext, Section> entry : sections.entrySet()) {
@@ -197,18 +201,36 @@ public class Reporter {
 
     private void reportAppInfo(PrintStream ps) {
         ProcessManifest m = this.elegant.getManifest();
-        String[] fullNameTokens = m.getApplicationName().split("\\.");
+        String file    = "[not provided]";
+        String appName = "[not provided]";
+        String version = "[not provided]";
+        String pkg     = "[not provided]";
+        String minSdk  = "[not provided]";
+        String tgtSdk  = "[not provided]";
+        String nr_a    = "[not provided]";
+        String nr_s    = "[not provided]";
+        String nr_r    = "[not provided]";
+        String nr_p    = "[not provided]";
+
+        try {
+            String[] fullPath = m.getApk().getAbsolutePath().split(File.separator);
+            file = fullPath[fullPath.length - 1];
+        } catch (Exception e) {}
+        try {
+            String[] fullNameTokens = m.getApplicationName().split("\\.");
+            appName = fullNameTokens[fullNameTokens.length - 1];
+        } catch (Exception e) {}
+        try { pkg = m.getPackageName(); } catch (Exception e) {}
+        try { version = String.valueOf(m.getVersionName()); } catch (Exception e) {}
+        try { minSdk  = String.valueOf(m.getMinSdkVersion()); } catch (Exception e) {}
+        try { tgtSdk  = String.valueOf(m.targetSdkVersion()); } catch (Exception e) {}
+        try { nr_a    = String.valueOf(m.getActivities().size()); } catch (Exception e) {}
+        try { nr_s    = String.valueOf(m.getServices().size()); } catch (Exception e) {}
+        try { nr_r    = String.valueOf(m.getReceivers().size()); } catch (Exception e) {}
+        try { nr_p    = String.valueOf(m.getProviders().size()); } catch (Exception e) {}
 
         ps.printf(REPROT_APP_TEMPLATE,
-                fullNameTokens[fullNameTokens.length - 1],
-                m.getVersionName(),
-                m.getPackageName(),
-                m.getMinSdkVersion(),
-                m.targetSdkVersion(),
-                m.getActivities().size(),
-                m.getServices().size(),
-                m.getReceivers().size(),
-                m.getProviders().size());
+                file, appName, pkg, version, minSdk, tgtSdk, nr_a, nr_s, nr_r, nr_p);
     }
 
     private void reportApiContext(PrintStream ps, ApiContext acpair) {
@@ -247,10 +269,12 @@ public class Reporter {
                     CallPoint   by;
 
                     ps.printf(REPORT_API_USAGE_CALL_CHAIN_LENGTH_TEMPLATE, i, info.size());
-                    ps.printf(REPORT_API_USAGE_CALL_CHAIN_AT_TEMPLATE, at.getMethod(), at.getSrcFile(), at.getStartLineNumber());
+                    ps.printf(REPORT_API_USAGE_CALL_CHAIN_AT_TEMPLATE,
+                            at.getMethod(), at.getSrcFile(), at.getStartLineNumber());
                     for (int k = 1; k <= info.getByCount(); k ++) {
                         by = info.by(k);
-                        ps.printf(REPORT_API_USAGE_CALL_CHAIN_BY_TEMPLATE, by.getMethod(), by.getSrcFile(), by.getStartLineNumber());
+                        ps.printf(REPORT_API_USAGE_CALL_CHAIN_BY_TEMPLATE,
+                                by.getMethod(), by.getSrcFile(), by.getStartLineNumber());
                     }
                     i ++;
                 }
@@ -261,7 +285,8 @@ public class Reporter {
                 CallPoint         at    = part.getKey();
                 List<Information> infos = part.getValue();
                 ps.printf(REPORT_API_USAGE_CALL_CHAIN_USAGE_TEMPLATE, i, at.getMethod(), infos.size());
-                ps.printf(REPORT_API_USAGE_CALL_CHAIN_AT_TEMPLATE, at.getMethod(), at.getSrcFile(), at.getStartLineNumber());
+                ps.printf(REPORT_API_USAGE_CALL_CHAIN_AT_TEMPLATE,
+                        at.getMethod(), at.getSrcFile(), at.getStartLineNumber());
                 i ++;
             }
         }

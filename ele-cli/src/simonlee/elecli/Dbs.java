@@ -1,4 +1,4 @@
-package simonlee.elegantcli;
+package simonlee.elecli;
 
 import java.io.File;
 

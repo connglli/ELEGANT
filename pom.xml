@@ -11,6 +11,6 @@
 
     <modules>
         <module>elegant</module>
-        <module>elegant-cli</module>
+        <module>ele-cli</module>
     </modules>
 </project>

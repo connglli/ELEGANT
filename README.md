@@ -7,7 +7,7 @@ ELEGANT is a tool us<u>e</u>d to <u>l</u>ocat<u>e</u> fra<u>g</u>ment<u>a</u>tio
 ### Content
 
  * [Intro](#intro)
- * [ELEGANT and elegant-cli](#elegant-and-elegant-cli)
+ * [ELEGANT and ele-cli](#elegant-and-ele-cli)
  * [Build (for command line users)](#build-for-command-line-users)
     * [step 1: clone or download](#step-1-clone-or-download)
     * [step2: build with maven](#step2-build-with-maven)
@@ -18,7 +18,7 @@ ELEGANT is a tool us<u>e</u>d to <u>l</u>ocat<u>e</u> fra<u>g</u>ment<u>a</u>tio
     * [step3: import to IntelliJ IDEA](#step3-import-to-intellij-idea)
     * [step4: config project](#step4-config-project)
     * [step5: run it](#step5-run-it)
- * [Tutorials - elegant-cli](#tutorials---elegant-cli)
+ * [Tutorials - ele-cli](#tutorials---ele-cli)
  * [Tutorials - ELEGANT](#tutorials---elegant)
     * [1. Create an ELEGANT instance](#1-create-an-elegant-instance)
     * [2. Watch issues](#2-watch-issues)
@@ -26,9 +26,9 @@ ELEGANT is a tool us<u>e</u>d to <u>l</u>ocat<u>e</u> fra<u>g</u>ment<u>a</u>tio
        * [2.2 Watch it](#22-watch-it)
     * [3. Report issues](#3-report-issues)
 
-### ELEGANT and elegant-cli
+### ELEGANT and ele-cli
 
-By default, we refer *ELEGANT* as a library, but we also provide a command line tool for convenience, i.e. *elegant-cli*. Both released as an uber-jar.
+By default, we refer *ELEGANT* as a library, but we also provide a command line tool for convenience, i.e. *ele-cli*. Both released as an uber-jar.
 
 ### Build (for command line users)
 
@@ -46,7 +46,7 @@ ELEGANT is released by default as a uber-jar, because we modified codes of soot-
 $ mvn package
 ```
 
-You will find the uber-jar `ELEGANT.jar` and `elegant-cli.jar` respectively in the `elegant/target` folder and `elegant-cli/target` folder. If you insist use ELEGANT not
+You will find the uber-jar `ELEGANT.jar` and `ele-cli.jar` respectively in the `elegant/target` folder and `ele-cli/target` folder. If you insist use ELEGANT not
 by an uber-jar, the jar file prefixed with `original-` is it (the dependencies, either modified or not,
 are installed ahead of time to the m2 directory, you can find them in it).
 
@@ -56,7 +56,7 @@ are installed ahead of time to the m2 directory, you can find them in it).
 
 #### step3: download dbs
 
-Move the jar file to any place that you like, and enter that folder, then enter the following commands to download [ELEGANT-dbs](https://github.com/Leetsong/ELEGANT-dbs), the databases (or datasets, resources) `ELEGANT` and `elegant-cli` needs.
+Move the jar file to any place that you like, and enter that folder, then enter the following commands to download [ELEGANT-dbs](https://github.com/Leetsong/ELEGANT-dbs), the databases (or datasets, resources) `ELEGANT` and `ele-cli` needs.
 
 ```bash
 $ git clone https://github.com/Leetsong/ELEGANT-dbs.git dbs
@@ -75,7 +75,7 @@ $ git clone https://github.com/Leetsong/ELEGANT.git
 
 #### step2: download dbs
 
-Move to `ELEGANT/elegant-cli` folder, download ELEGANT-dbs.
+Move to `ELEGANT/ele-cli` folder, download ELEGANT-dbs.
 
 ```bash
 $ git clone https://github.com/Leetsong/ELEGANT-dbs.git dbs
@@ -97,14 +97,14 @@ Go to *File-Project Structure...*.
 
 #### step5: run it
 
-The entry is `simonlee.elegantcli.CLI`. If you want to run it, remember to go to the corresponding *Run/Debug Configurations*, and set *Working directory* to `ELEGANT/elegant-cli`.
+The entry is `simonlee.elegantcli.CLI`. If you want to run it, remember to go to the corresponding *Run/Debug Configurations*, and set *Working directory* to `ELEGANT/ele-cli`.
 
-### Tutorials - elegant-cli
+### Tutorials - ele-cli
 
-For easily use, we provide a tool *elegant-cli* that you can use from your command line. And `ELEGANT-cli` is a best practice of using `ELEGANT`. To use *ELEGANT-cli*,
+For easily use, we provide a tool *ele-cli* that you can use from your command line. And `ele-cli` is a best practice of using `ELEGANT`. To use *ele-cli*,
 
 ```bash
-usage: java -jar elegant-cli.jar [option ...] <apk>
+usage: java -jar ele-cli.jar [option ...] <apk>
 option:
  -d3,--d3-algo <value>        algorithms used in 3rd party library
                               detection, <value> is one of: d3.none,
@@ -151,7 +151,7 @@ ELEGANT elegant = builder
 As shown above, the `ELEGANT.Builder` will guide you to construct a legal `ELEGANT` instance. If any *REQUIRED* field are missed, `ELEGANT.Builder` willfail. All fields are,
 
 - `withApkPath` *REQUIRED* 
-- `withModelsPath` *REQUIRED* you can use `models.json`  provided by *elegant-cli*, see details in section ELEGANT-cli
+- `withModelsPath` *REQUIRED* you can use `models.json`  provided by *ele-cli*, see details in section ele-cli
 - `withPlatformsPath` *REQUIRED*
 - `withD3Algo`  *OPTIONAL* alternatives are `d3.whitelist`, `d3.none` and `d3.libscout`.
 
