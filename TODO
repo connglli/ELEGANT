@@ -1,0 +1,8 @@
+1. Parameterize whitelist, -wl 3rdpartylibs.ranked.txt
+2. Add a FinderManager to manage all the finders.
+     Specifically, the finder manager can, add/remove/enable/disable/sort finders
+     All finders are a derived class of AbstractFinder.
+3. Add life-cycler method to both ELEGANT and AbstractFinder to
+     fine-grainedly control them.
+4. Add a broker to PubSub, so that we can publish any message, and add any message
+   listeners, e.g. issues, opts, time, stats, ...

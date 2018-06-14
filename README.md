@@ -25,6 +25,7 @@ ELEGANT is a tool us<u>e</u>d to <u>l</u>ocat<u>e</u> fra<u>g</u>ment<u>a</u>tio
        * [2.1 Write a Issue Handle](#21-write-a-issue-handle)
        * [2.2 Watch it](#22-watch-it)
     * [3. Report issues](#3-report-issues)
+ * [License(#license)
 
 ### ELEGANT and ele-cli
 
@@ -190,3 +191,7 @@ elegant.watchIssues(new IssueHandle());
 #### 3. Report issues
 
 The last step is to report them. The report codes should inhabit in your issue handle, but the recommended way is to write your own reporter to take care of them separately and use your issue handle as a proxy from `ELEGANT` to your own reporter.
+
+### License
+
+MIT License.
