@@ -2,7 +2,7 @@
 
 ### Intro
 
-ELEGANT is a tool us<u>e</u>d to <u>l</u>ocat<u>e</u> fra<u>g</u>ment<u>a</u>tion i<u>n</u>duced compa<u>t</u>ibility issues. A self-implementation of [FicFinder](http://sccpu2.cse.ust.hk/ficfinder/index.html).
+ELEGANT is a tool to <u>e</u>ffectively <u>l</u>ocat<u>e</u> fra<u>g</u>ment<u>a</u>tion-i<u>n</u>duced compa<u>t</u>ibility issues. A self-implementation of [FicFinder](http://sccpu2.cse.ust.hk/ficfinder/index.html).
 
 ### Content
 
@@ -25,7 +25,7 @@ ELEGANT is a tool us<u>e</u>d to <u>l</u>ocat<u>e</u> fra<u>g</u>ment<u>a</u>tio
        * [2.1 Write a Issue Handle](#21-write-a-issue-handle)
        * [2.2 Watch it](#22-watch-it)
     * [3. Report issues](#3-report-issues)
- * [License(#license)
+ * [License](#license)
 
 ### ELEGANT and ele-cli
 

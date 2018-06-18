@@ -20,7 +20,7 @@ public class CLI {
     // ELEGANT information
     public static class APP {
         public static final String NAME        = "ELEGANT CLI Tool";
-        public static final String DESCRIPTION = "a tool usEd to LocatE fraGmentAtion iNduced compaTibility issues";
+        public static final String DESCRIPTION = "a tool to Effectively LocatE fraGmentAtion-iNduced compaTibility issues";
         public static final String MAJOR_V     = "1";
         public static final String MINOR_V     = "0";
         public static final String PATCH_V     = "0";
